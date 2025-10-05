@@ -1,12 +1,10 @@
-// app/login/page.tsx
 'use client'
 
 import { useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-
-// Use the environment variable for backend URL
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+import { signInWithEmailAndPassword } from 'firebase/auth'
+import { auth } from '@/lib/firebase'
 
 export default function LoginPage() {
   const [email, setEmail] = useState('')
@@ -19,24 +17,29 @@ export default function LoginPage() {
     setLoading(true)
     
     try {
-      // Use the full backend URL instead of relative path
-      const res = await fetch(`${API_URL}/api/auth/login`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
-      })
-
-      if (res.ok) {
-        router.push('/builder')
-      } else {
-        const data = await res.json()
-        alert(data.error || 'Login failed')
-      }
+      // ✅ Sign in with Firebase
+      await signInWithEmailAndPassword(auth, email, password);
+      
+      // ✅ On success, redirect to builder
+      router.push('/builder');
     } catch (error) {
-      console.error('Login error:', error)
-      alert('Something went wrong')
+      console.error('Firebase login error:', error);
+      let message = 'Login failed. Please check your credentials.';
+      
+      // ✅ Handle specific Firebase Auth errors
+      if (error.code === 'auth/user-not-found') {
+        message = 'No account found with this email. Please sign up.';
+      } else if (error.code === 'auth/wrong-password') {
+        message = 'Incorrect password. Please try again.';
+      } else if (error.code === 'auth/invalid-email') {
+        message = 'Please enter a valid email address.';
+      } else if (error.code === 'auth/too-many-requests') {
+        message = 'Too many failed attempts. Please try again later.';
+      }
+      
+      alert(message);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
   }
 
@@ -57,7 +60,6 @@ export default function LoginPage() {
             {/* Left Side - Image */}
             <div className="hidden lg:flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-50">
               <div className="relative p-6">
-                {/* Fixed filename - use underscore instead of space */}
                 <img 
                   src="/images/resume login.jpg" 
                   alt="Resume Login Illustration" 

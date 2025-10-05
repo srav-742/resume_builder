@@ -1,12 +1,10 @@
-// app/signup/page.tsx
 'use client'
 
 import { useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-
-// Use the environment variable
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+import { createUserWithEmailAndPassword } from 'firebase/auth'
+import { auth } from '@/lib/firebase'
 
 export default function SignupPage() {
   const [name, setName] = useState('')
@@ -20,22 +18,24 @@ export default function SignupPage() {
     setLoading(true)
     
     try {
-      // Use the full backend URL with /api/auth/signup
-      const res = await fetch(`${API_URL}/api/auth/signup`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, email, password }),
-      })
-
-      if (res.ok) {
-        router.push('/builder')
-      } else {
-        const data = await res.json()
-        alert(data.error || 'Signup failed')
-      }
+      // ✅ Create user in Firebase Auth (only email + password)
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      
+      // ✅ Optional: Send name + Firebase UID to backend later (not now)
+      // For now, just redirect after Firebase signup
+      router.push('/builder')
     } catch (error) {
-      console.error('Signup error:', error)
-      alert('Something went wrong')
+      console.error('Firebase signup error:', error)
+      // Show user-friendly message
+      let message = 'Signup failed. Please try again.'
+      if (error.code === 'auth/email-already-in-use') {
+        message = 'This email is already registered.'
+      } else if (error.code === 'auth/invalid-email') {
+        message = 'Please enter a valid email.'
+      } else if (error.code === 'auth/weak-password') {
+        message = 'Password should be at least 6 characters.'
+      }
+      alert(message)
     } finally {
       setLoading(false)
     }
@@ -128,7 +128,6 @@ export default function SignupPage() {
             {/* Right Side - Image */}
             <div className="hidden lg:flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-50">
               <div className="relative">
-                {/* Fixed filename - use underscore instead of space */}
                 <img 
                   src="/images/resumesignup image.png" 
                   alt="Resume Signup Illustration"
