@@ -121,7 +121,7 @@ export default function ATSScorePage() {
                     Matched Keywords
                   </h3>
                   <div className="flex flex-wrap gap-2">
-                    {analysisResult.matchedKeywords.length > 0 ? (
+                    {analysisResult.matchedKeywords?.length ? (
                       analysisResult.matchedKeywords.map((keyword, index) => (
                         <Badge key={index} variant="outline" className="bg-green-50 text-green-700 border-green-200">
                           {keyword}
@@ -139,7 +139,7 @@ export default function ATSScorePage() {
                     Missing Keywords
                   </h3>
                   <div className="flex flex-wrap gap-2">
-                    {analysisResult.missingKeywords.length > 0 ? (
+                    {analysisResult.missingKeywords?.length ? (
                       analysisResult.missingKeywords.map((keyword, index) => (
                         <Badge key={index} variant="outline" className="bg-amber-50 text-amber-700 border-amber-200">
                           {keyword}
@@ -153,7 +153,7 @@ export default function ATSScorePage() {
 
                 <div>
                   <h3 className="text-lg font-medium mb-2">Recommendations</h3>
-                  {analysisResult.recommendations.length > 0 ? (
+                  {analysisResult.recommendations?.length ? (
                     <ul className="space-y-2 list-disc pl-5">
                       {analysisResult.recommendations.map((recommendation, index) => (
                         <li key={index} className="text-sm">
