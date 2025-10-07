@@ -1,52 +1,64 @@
-const express = require("express")
-const mongoose = require("mongoose")
-const cors = require("cors")
-const dotenv = require("dotenv")
-const routes = require("./routes/api")
-const authRoutes = require("./routes/auth") // ← Added this line
-const path = require("path")
+// Load environment variables FIRST
+const dotenv = require("dotenv");
+dotenv.config();
 
-// Load environment variables
-dotenv.config()
+const express = require("express");
+const mongoose = require("mongoose");
+const cors = require("cors");
+const routes = require("./routes/api");
+// const authRoutes = require("./routes/auth") // ← REMOVED: obsolete per Step 4
+const userRoutes = require('./routes/user'); // ← Kept: Firebase UID sync route
+const path = require("path");
 
 // Create Express app
-const app = express()
-const PORT = process.env.PORT || 5000
+const app = express();
+const PORT = process.env.PORT || 5000;
 
 // Middleware
-app.use(cors())
-app.use(express.json())
-app.use(express.urlencoded({ extended: true }))
+app.use(cors()); // Allows frontend (localhost:3000) to call backend
+app.use(express.json({ limit: '10mb' })); // Prevent payload too large
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // Connect to MongoDB
 mongoose
   .connect(process.env.MONGODB_URI)
   .then(() => console.log("MongoDB connected"))
   .catch((err) => {
-    console.error("MongoDB connection error:", err)
-    process.exit(1)
-  })
+    console.error("MongoDB connection error:", err.message);
+    process.exit(1);
+  });
 
 // API Routes
-app.use("/api", routes)
-app.use("/api/auth", authRoutes) // ← Added this line
+app.use("/api", routes);
+// app.use("/api/auth", authRoutes); // ← REMOVED: no longer used
+app.use('/api/user', userRoutes); // ← Firebase user sync route
+
+// Health check route (optional but helpful for debugging)
+app.get('/health', (req, res) => {
+  res.json({ status: 'OK', timestamp: new Date().toISOString() });
+});
 
 // Serve static files in production
 if (process.env.NODE_ENV === "production") {
-  app.use(express.static(path.join(__dirname, "client/build")))
+  app.use(express.static(path.join(__dirname, "client/build")));
 
   app.get("*", (req, res) => {
-    res.sendFile(path.join(__dirname, "client/build", "index.html"))
-  })
+    res.sendFile(path.join(__dirname, "client/build", "index.html"));
+  });
 }
 
-// Error handling middleware
+// Centralized error handling
 app.use((err, req, res, next) => {
-  console.error(err.stack)
-  res.status(500).json({ error: "Server error", message: err.message })
-})
+  console.error("Unhandled error:", err.stack || err);
+  res.status(500).json({ error: "Internal server error" });
+});
+
+// Handle 404 for API routes
+app.use('/api/*', (req, res) => {
+  res.status(404).json({ error: 'API route not found' });
+});
 
 // Start server
 app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`)
-})
+  console.log(`Server running on port ${PORT}`);
+});

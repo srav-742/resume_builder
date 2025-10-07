@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { createUserWithEmailAndPassword } from 'firebase/auth'
+import { createUserWithEmailAndPassword, updateProfile, getIdToken } from 'firebase/auth'
 import { auth } from '@/lib/firebase'
 
 export default function SignupPage() {
@@ -18,15 +18,30 @@ export default function SignupPage() {
     setLoading(true)
     
     try {
-      // ✅ Create user in Firebase Auth (only email + password)
+      // ✅ Create user in Firebase Auth
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       
-      // ✅ Optional: Send name + Firebase UID to backend later (not now)
-      // For now, just redirect after Firebase signup
+      // ✅ Update profile to include name (so it appears in ID token)
+      await updateProfile(userCredential.user, { displayName: name });
+      
+      // ✅ Get a fresh ID token that includes the name
+      const idToken = await getIdToken(userCredential.user, true); // true = force refresh
+      
+      const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/user/profile`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${idToken}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to sync user with backend');
+      }
+
+      // ✅ Redirect after successful Firebase signup + backend sync
       router.push('/builder')
     } catch (error) {
-      console.error('Firebase signup error:', error)
-      // Show user-friendly message
+      console.error('Signup error:', error)
       let message = 'Signup failed. Please try again.'
       if (error.code === 'auth/email-already-in-use') {
         message = 'This email is already registered.'
@@ -34,6 +49,8 @@ export default function SignupPage() {
         message = 'Please enter a valid email.'
       } else if (error.code === 'auth/weak-password') {
         message = 'Password should be at least 6 characters.'
+      } else if (error.message === 'Failed to sync user with backend') {
+        message = 'Account created, but server error. Please log in.'
       }
       alert(message)
     } finally {

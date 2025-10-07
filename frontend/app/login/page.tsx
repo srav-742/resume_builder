@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { signInWithEmailAndPassword } from 'firebase/auth'
+import { signInWithEmailAndPassword, getIdToken } from 'firebase/auth'
 import { auth } from '@/lib/firebase'
 
 export default function LoginPage() {
@@ -18,15 +18,28 @@ export default function LoginPage() {
     
     try {
       // ✅ Sign in with Firebase
-      await signInWithEmailAndPassword(auth, email, password);
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
       
+      // ✅ NEW: Get ID token and sync user with backend
+      const idToken = await getIdToken(userCredential.user);
+      
+      const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/user/profile`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${idToken}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to sync user with backend');
+      }
+
       // ✅ On success, redirect to builder
       router.push('/builder');
     } catch (error) {
       console.error('Firebase login error:', error);
       let message = 'Login failed. Please check your credentials.';
       
-      // ✅ Handle specific Firebase Auth errors
       if (error.code === 'auth/user-not-found') {
         message = 'No account found with this email. Please sign up.';
       } else if (error.code === 'auth/wrong-password') {
@@ -35,6 +48,8 @@ export default function LoginPage() {
         message = 'Please enter a valid email address.';
       } else if (error.code === 'auth/too-many-requests') {
         message = 'Too many failed attempts. Please try again later.';
+      } else if (error.message === 'Failed to sync user with backend') {
+        message = 'Login successful, but server error. Please try again.';
       }
       
       alert(message);

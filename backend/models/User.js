@@ -1,11 +1,18 @@
-// models/User.js
+// backend/models/User.js
 const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
 
 const userSchema = new mongoose.Schema({
-  name: {
+  firebaseUid: {
     type: String,
     required: true,
+    unique: true,
+    index: true,
+    trim: true
+  },
+  name: {
+    type: String,
+    required: false, // Optional, since Firebase may not always provide it
     trim: true
   },
   email: {
@@ -17,16 +24,18 @@ const userSchema = new mongoose.Schema({
   },
   password: {
     type: String,
-    required: true,
+    required: false, // ← Critical: Firebase handles auth, so password is optional
     minlength: 6
   }
 }, {
   timestamps: true
 });
 
-// Hash password before saving
+// Hash password only if it's provided (for backward compatibility)
 userSchema.pre('save', async function(next) {
-  if (!this.isModified('password')) return next();
+  if (!this.isModified('password') || !this.password) {
+    return next();
+  }
   this.password = await bcrypt.hash(this.password, 12);
   next();
 });
