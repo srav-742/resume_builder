@@ -38,6 +38,15 @@ app.get('/health', (req, res) => {
   res.json({ status: 'OK', timestamp: new Date().toISOString() });
 });
 
+// ✅ FIX: Add root route to prevent "Cannot GET /" error
+app.get('/', (req, res) => {
+  res.status(200).json({
+    message: 'Resume Builder Backend is running!',
+    success: true,
+    timestamp: new Date().toISOString()
+  });
+});
+
 // Serve static files in production
 if (process.env.NODE_ENV === "production") {
   app.use(express.static(path.join(__dirname, "client/build")));
