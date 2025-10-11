@@ -1,4 +1,4 @@
-// backend/middleware/auth.js
+// middleware/auth.js
 const admin = require('../lib/firebaseAdmin');
 
 const authenticate = async (req, res, next) => {
@@ -11,7 +11,7 @@ const authenticate = async (req, res, next) => {
   try {
     const decodedToken = await admin.auth().verifyIdToken(idToken);
     req.user = {
-      uid: decodedToken.uid,      // ← This is the Firebase UID
+      uid: decodedToken.uid,      // ← Firebase UID
       email: decodedToken.email,
       name: decodedToken.name || null
     };

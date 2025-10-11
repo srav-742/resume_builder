@@ -8,6 +8,7 @@ const cors = require("cors");
 const routes = require("./routes/api");
 // const authRoutes = require("./routes/auth") // ← REMOVED: obsolete per Step 4
 const userRoutes = require('./routes/user'); // ← Kept: Firebase UID sync route
+const resumeRoutes = require('./routes/resume'); // ✅ NEW: Resume data persistence route
 const path = require("path");
 
 // Create Express app
@@ -32,6 +33,7 @@ mongoose
 app.use("/api", routes);
 // app.use("/api/auth", authRoutes); // ← REMOVED: no longer used
 app.use('/api/user', userRoutes); // ← Firebase user sync route
+app.use('/api', resumeRoutes); // ✅ NEW: Resume fetch route (e.g., GET /api/user/resumes)
 
 // Health check route (optional but helpful for debugging)
 app.get('/health', (req, res) => {

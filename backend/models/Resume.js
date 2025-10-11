@@ -92,6 +92,13 @@ const additionalSectionSchema = new mongoose.Schema({
 
 const resumeSchema = new mongoose.Schema(
   {
+    // ✅ ADD THIS FIELD (required for user-resume linking)
+    userId: {
+      type: String,
+      required: true,
+      index: true, // ← improves query performance
+    },
+
     template: {
       type: String,
       default: "template1",

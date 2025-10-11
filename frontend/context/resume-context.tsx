@@ -64,6 +64,27 @@ export function ResumeProvider({ children }: { children: ReactNode }) {
   const [resumeData, setResumeData] = useState<ResumeData>({})
   const [isLoading, setIsLoading] = useState(true)
 
+  // ✅ NEW: Load from localStorage on mount (if available)
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('resumeData');
+      if (saved) {
+        try {
+          setResumeData(JSON.parse(saved));
+        } catch (e) {
+          console.error('Failed to parse resume data from localStorage');
+        }
+      }
+    }
+  }, []);
+
+  // ✅ NEW: Save to localStorage whenever resumeData changes
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('resumeData', JSON.stringify(resumeData));
+    }
+  }, [resumeData]);
+
   useEffect(() => {
     async function loadResume() {
       try {
