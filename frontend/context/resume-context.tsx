@@ -2,6 +2,7 @@
 
 import { createContext, useContext, useState, useEffect, type ReactNode } from "react"
 import { getResume } from "@/services/api"
+import { auth } from "@/lib/firebase" // ✅ Import Firebase auth
 
 export type ResumeData = {
   id?: string
@@ -64,7 +65,7 @@ export function ResumeProvider({ children }: { children: ReactNode }) {
   const [resumeData, setResumeData] = useState<ResumeData>({})
   const [isLoading, setIsLoading] = useState(true)
 
-  // ✅ NEW: Load from localStorage on mount (if available)
+  // ✅ Load from localStorage on mount (if available)
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const saved = localStorage.getItem('resumeData');
@@ -78,31 +79,48 @@ export function ResumeProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
-  // ✅ NEW: Save to localStorage whenever resumeData changes
+  // ✅ Save to localStorage whenever resumeData changes
   useEffect(() => {
     if (typeof window !== 'undefined') {
       localStorage.setItem('resumeData', JSON.stringify(resumeData));
     }
   }, [resumeData]);
 
+  // ✅ ENHANCED: Load resume from backend if user is logged in
   useEffect(() => {
-    async function loadResume() {
+    async function loadResumeFromBackend() {
       try {
-        const data = await getResume()
-        if (data) {
-          setResumeData(data)
+        const currentUser = auth.currentUser;
+        if (currentUser) {
+          // Get fresh ID token
+          const idToken = await currentUser.getIdToken(true);
+          
+          // Fetch resume from backend using token
+          const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/user/resumes`, {
+            method: 'GET',
+            headers: {
+              'Authorization': `Bearer ${idToken}`,
+            },
+          });
+
+          if (response.ok) {
+            const { resumes } = await response.json();
+            const resume = resumes[0] || {};
+            setResumeData(resume);
+            localStorage.setItem('resumeData', JSON.stringify(resume)); // sync with localStorage
+          }
         }
       } catch (error) {
-        console.error("Failed to load resume data:", error)
+        console.error("Failed to load resume from backend:", error);
       } finally {
-        setIsLoading(false)
+        setIsLoading(false);
       }
     }
 
-    loadResume()
-  }, [])
+    loadResumeFromBackend();
+  }, []);
 
-  function updateResumeData(data: ResumeData) {
+  function updateResumeData( ResumeData) {
     setResumeData(data)
   }
 
