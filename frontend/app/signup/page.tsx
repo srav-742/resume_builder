@@ -34,7 +34,11 @@ export default function SignupPage() {
         },
       });
 
+      // 👇 DEBUG: Log backend response
+      console.log('Backend /api/user/profile response:', response.status, response.ok);
       if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Backend error details:', errorText);
         throw new Error('Failed to sync user with backend');
       }
 
@@ -88,7 +92,11 @@ export default function SignupPage() {
         },
       });
 
+      // 👇 DEBUG: Log backend response
+      console.log('Backend /api/user/profile response:', response.status, response.ok);
       if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Backend error details:', errorText);
         throw new Error('Failed to sync user with backend');
       }
 
