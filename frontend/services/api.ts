@@ -1,4 +1,5 @@
 import type { ResumeData } from "@/context/resume-context"
+import { getAuth } from "firebase/auth"
 
 // Use relative URL for API calls within the same Next.js app
 const API_URL = "/api"
@@ -26,19 +27,30 @@ export async function getResume(): Promise<ResumeData | null> {
   }
 }
 
-// Save resume data to the server
+// Save resume data to the server ✅ UPDATED
 export async function saveResume(data: ResumeData): Promise<ResumeData> {
   try {
-    const response = await fetch(`${API_URL}/resume`, {
+    const auth = getAuth()
+    const currentUser = auth.currentUser
+
+    if (!currentUser) {
+      throw new Error("User not authenticated")
+    }
+
+    const token = await currentUser.getIdToken()
+
+    const response = await fetch(`${API_URL}/user/resumes`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`, // ← Required for auth
       },
       body: JSON.stringify(data),
     })
 
     if (!response.ok) {
-      throw new Error("Failed to save resume data")
+      const errorData = await response.json().catch(() => ({}))
+      throw new Error(errorData.error || "Failed to save resume data")
     }
 
     return await response.json()

@@ -92,13 +92,11 @@ const additionalSectionSchema = new mongoose.Schema({
 
 const resumeSchema = new mongoose.Schema(
   {
-    // ✅ ADD THIS FIELD (required for user-resume linking)
     userId: {
       type: String,
       required: true,
-      index: true, // ← improves query performance
+      index: true,
     },
-
     template: {
       type: String,
       default: "template1",
@@ -138,5 +136,8 @@ const resumeSchema = new mongoose.Schema(
 )
 
 const Resume = mongoose.model("Resume", resumeSchema)
+
+// ✅ Ensure index is created (safe to call on every startup)
+Resume.ensureIndexes()
 
 module.exports = Resume

@@ -19,7 +19,7 @@ const PORT = process.env.PORT || 5000;
 const corsOptions = {
   origin: [
     'http://localhost:3000', // Local development
-    'https://resume-builder-lyart-six.vercel.app' // Your deployed frontend
+    'https://resume-builder-lyart-six.vercel.app' // ← FIXED: removed trailing spaces
   ],
   credentials: true,
   optionsSuccessStatus: 200
@@ -43,7 +43,7 @@ mongoose
 app.use("/api", routes);
 // app.use("/api/auth", authRoutes); // ← REMOVED: no longer used
 app.use('/api/user', userRoutes); // ← Firebase user sync route
-app.use('/api', resumeRoutes); // ✅ NEW: Resume fetch route (e.g., GET /api/user/resumes)
+app.use('/api', resumeRoutes); // ✅ NEW: Resume fetch/save route (e.g., GET/POST /api/user/resumes)
 
 // Health check route (optional but helpful for debugging)
 app.get('/health', (req, res) => {
