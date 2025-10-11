@@ -44,25 +44,24 @@ export default function TemplatesPage() {
     setSelectedTemplate(templateId)
 
     try {
-      // Update the template in the resume data
       const updatedData = {
         ...resumeData,
         template: templateId,
       }
 
-      // Save to backend
-      await saveResume(updatedData)
-
-      // Update local state
+      // ✅ Update local state FIRST (saves to localStorage)
       updateResumeData(updatedData)
+
+      // ✅ NAVIGATE IMMEDIATELY — don't wait for backend
+      router.push(`/builder/personal-info`)
+
+      // Save to backend in background
+      await saveResume(updatedData)
 
       toast({
         title: "Template Selected",
         description: `You've selected the ${templates.find((t) => t.id === templateId)?.name} template.`,
       })
-
-      // Navigate to next step
-      router.push(`/builder/personal-info`)
     } catch (error) {
       console.error("Error saving template selection:", error)
       toast({
@@ -70,6 +69,7 @@ export default function TemplatesPage() {
         title: "Error",
         description: "Failed to save template selection. Please try again.",
       })
+      // Navigation already happened — user is not blocked
     } finally {
       setIsLoading(false)
     }

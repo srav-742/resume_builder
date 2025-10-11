@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useState, useEffect, type ReactNode } from "react"
 import { getResume } from "@/services/api"
-import { auth } from "@/lib/firebase" // ✅ Import Firebase auth
+import { auth } from "@/lib/firebase"
 
 export type ResumeData = {
   id?: string
@@ -120,11 +120,16 @@ export function ResumeProvider({ children }: { children: ReactNode }) {
     loadResumeFromBackend();
   }, []);
 
-  function updateResumeData( ResumeData) {
-    setResumeData(data)
+  // ✅ FIXED: Correct parameter name and usage
+  function updateResumeData(data: ResumeData) {
+    setResumeData(data);
   }
 
-  return <ResumeContext.Provider value={{ resumeData, updateResumeData, isLoading }}>{children}</ResumeContext.Provider>
+  return (
+    <ResumeContext.Provider value={{ resumeData, updateResumeData, isLoading }}>
+      {children}
+    </ResumeContext.Provider>
+  )
 }
 
 export function useResume() {

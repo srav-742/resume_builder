@@ -158,7 +158,7 @@ export default function PersonalInfoPage() {
                 <FormItem>
                   <FormLabel>Profile Picture URL</FormLabel>
                   <FormControl>
-                    <Input placeholder="https://example.com/your-photo.jpg" {...field} />
+                    <Input placeholder="https://example.com/your-photo.jpg  " {...field} />
                   </FormControl>
                   <FormDescription>Recommended: Square JPG or PNG image URL</FormDescription>
                   <FormMessage />
@@ -189,7 +189,8 @@ export default function PersonalInfoPage() {
             />
 
             <BuilderNavigation>
-              <Button type="button" variant="outline" onClick={() => router.push("/templates")}>
+              {/* ✅ FIXED: Correct path to /builder/templates */}
+              <Button type="button" variant="outline" onClick={() => router.push("/builder/templates")}>
                 Previous
               </Button>
               <div className="flex items-center gap-4">
