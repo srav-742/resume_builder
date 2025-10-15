@@ -6,7 +6,6 @@ import { Card } from "@/components/ui/card"
 import { useResume } from "@/context/resume-context"
 import { FormSkeleton } from "@/components/form-skeleton"
 import { ResumeHeader } from "@/components/resume-header"
-// ✅ Changed to default imports
 import ResumeTemplate1 from "@/components/resume-templates/template1"
 import ResumeTemplate2 from "@/components/resume-templates/template2"
 import ResumeTemplate3 from "@/components/resume-templates/template3"
@@ -14,13 +13,18 @@ import { ArrowLeft } from "lucide-react"
 import { ThemeProviderWrapper } from "@/components/theme-provider-wrapper"
 import { PdfDownloadButton } from "@/components/pdf-download-button"
 
-// ✅ Opt out of static rendering — critical for dynamic/client-dependent pages
+// ✅ Force dynamic rendering — no static prerender
 export const dynamic = 'force-dynamic'
 
 export default function PreviewPage(): JSX.Element {
   const router = useRouter()
   const searchParams = useSearchParams()
   const { resumeData, isLoading } = useResume()
+
+  // ✅ Safe fallback: prevent render if resumeData is not ready (especially on SSR)
+  if (isLoading || !resumeData || !resumeData.template) {
+    return <FormSkeleton />
+  }
 
   function renderTemplate(): JSX.Element {
     switch (resumeData.template) {
@@ -33,10 +37,6 @@ export default function PreviewPage(): JSX.Element {
       default:
         return <ResumeTemplate1 data={resumeData} />
     }
-  }
-
-  if (isLoading) {
-    return <FormSkeleton />
   }
 
   const fromStep = searchParams.get("from") || "personal-info"
@@ -64,7 +64,6 @@ export default function PreviewPage(): JSX.Element {
             </div>
           </div>
 
-          {/* Updated: Match in-editor preview container exactly */}
           <Card className="p-0 shadow-lg print:shadow-none overflow-hidden">
             <div className="w-[8.5in] mx-auto bg-white" id="resume-content">
               {renderTemplate()}
