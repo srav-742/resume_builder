@@ -27,8 +27,8 @@ export default function PreviewPage(): JSX.Element {
     setIsClient(true)
   }, [])
 
-  // ✅ Do not render anything on the server — wait for client hydration
-  if (!isClient || isLoading || !resumeData || !resumeData.template) {
+  // ✅ Wait for client + data to be ready
+  if (!isClient || isLoading || !resumeData || typeof resumeData.template !== 'string') {
     return <FormSkeleton />
   }
 

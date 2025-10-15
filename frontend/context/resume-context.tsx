@@ -80,22 +80,33 @@ export function ResumeProvider({ children }: { children: ReactNode }) {
           const resume = await getUserResume()
           const finalData = resume || {}
           setResumeData(finalData)
-          localStorage.setItem('resumeData', JSON.stringify(finalData))
+          if (typeof window !== 'undefined') {
+            localStorage.setItem('resumeData', JSON.stringify(finalData))
+          }
         } catch (error) {
           console.error("Failed to load user resume:", error)
           setResumeData({})
-          localStorage.setItem('resumeData', JSON.stringify({}))
+          if (typeof window !== 'undefined') {
+            localStorage.setItem('resumeData', JSON.stringify({}))
+          }
         }
       } else {
         try {
-          const saved = localStorage.getItem('resumeData')
-          setResumeData(saved ? JSON.parse(saved) : {})
+          if (typeof window !== 'undefined') {
+            const saved = localStorage.getItem('resumeData')
+            setResumeData(saved ? JSON.parse(saved) : {})
+          } else {
+            setResumeData({})
+          }
         } catch (e) {
           setResumeData({})
         }
 
-        // ✅ Redirect away from builder if signed out
-        if (window.location.pathname.startsWith('/builder')) {
+        // ✅ Only redirect if window is available and on /builder
+        if (
+          typeof window !== 'undefined' &&
+          window.location.pathname.startsWith('/builder')
+        ) {
           window.location.href = '/login'
         }
       }
@@ -106,7 +117,14 @@ export function ResumeProvider({ children }: { children: ReactNode }) {
   }, [])
 
   useEffect(() => {
-    if (!isLoading && resumeData && !isInitialRedirectDone && user) {
+    // ✅ Only run redirect logic on the client
+    if (
+      typeof window !== 'undefined' &&
+      !isLoading &&
+      resumeData &&
+      !isInitialRedirectDone &&
+      user
+    ) {
       const nextStep = getFurthestStep(resumeData)
       router.replace(`/builder/${nextStep}`)
       setIsInitialRedirectDone(true)
