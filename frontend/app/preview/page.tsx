@@ -23,12 +23,18 @@ export default function PreviewPage(): JSX.Element {
   const { resumeData, isLoading } = useResume()
   const [isClient, setIsClient] = useState(false)
 
+  // ✅ Only set isClient to true after hydration
   useEffect(() => {
     setIsClient(true)
   }, [])
 
   // ✅ Do not render anything on the server — wait for client hydration
-  if (!isClient || isLoading || !resumeData || !resumeData.template) {
+  if (!isClient) {
+    return <FormSkeleton />
+  }
+
+  // ✅ After hydration, check if data is ready
+  if (isLoading || !resumeData || !resumeData.template) {
     return <FormSkeleton />
   }
 
