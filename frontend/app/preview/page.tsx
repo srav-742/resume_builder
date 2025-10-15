@@ -12,6 +12,7 @@ import ResumeTemplate3 from "@/components/resume-templates/template3"
 import { ArrowLeft } from "lucide-react"
 import { ThemeProviderWrapper } from "@/components/theme-provider-wrapper"
 import { PdfDownloadButton } from "@/components/pdf-download-button"
+import { useEffect, useState } from "react"
 
 // ✅ Force dynamic rendering — no static prerender
 export const dynamic = 'force-dynamic'
@@ -20,9 +21,14 @@ export default function PreviewPage(): JSX.Element {
   const router = useRouter()
   const searchParams = useSearchParams()
   const { resumeData, isLoading } = useResume()
+  const [isClient, setIsClient] = useState(false)
 
-  // ✅ Safe fallback: prevent render if resumeData is not ready (especially on SSR)
-  if (isLoading || !resumeData || !resumeData.template) {
+  useEffect(() => {
+    setIsClient(true)
+  }, [])
+
+  // ✅ Do not render anything on the server — wait for client hydration
+  if (!isClient || isLoading || !resumeData || !resumeData.template) {
     return <FormSkeleton />
   }
 
