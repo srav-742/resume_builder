@@ -14,6 +14,9 @@ import { ArrowLeft } from "lucide-react"
 import { ThemeProviderWrapper } from "@/components/theme-provider-wrapper"
 import { PdfDownloadButton } from "@/components/pdf-download-button"
 
+// ✅ Opt out of static rendering — critical for dynamic/client-dependent pages
+export const dynamic = 'force-dynamic'
+
 export default function PreviewPage(): JSX.Element {
   const router = useRouter()
   const searchParams = useSearchParams()
