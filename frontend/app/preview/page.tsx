@@ -1,11 +1,12 @@
-"use client"
+// Remove "use client" from the top
+// "use client"
 
 import { useRouter, useSearchParams } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { useResume } from "@/context/resume-context"
 import { FormSkeleton } from "@/components/form-skeleton"
-import { ResumeHeader } from "@/components/resume-header"
+import { ResumeHeader } from "@/components/resume-templates/template1"
 import ResumeTemplate1 from "@/components/resume-templates/template1"
 import ResumeTemplate2 from "@/components/resume-templates/template2"
 import ResumeTemplate3 from "@/components/resume-templates/template3"
@@ -14,27 +15,22 @@ import { ThemeProviderWrapper } from "@/components/theme-provider-wrapper"
 import { PdfDownloadButton } from "@/components/pdf-download-button"
 import { useEffect, useState } from "react"
 
-// ✅ Force dynamic rendering — no static prerender
+// ✅ Export dynamic config to prevent SSR
 export const dynamic = 'force-dynamic'
 
-export default function PreviewPage(): JSX.Element {
+// ✅ Create a separate component for the actual preview logic
+function PreviewContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const { resumeData, isLoading } = useResume()
   const [isClient, setIsClient] = useState(false)
 
-  // ✅ Only set isClient to true after hydration
   useEffect(() => {
     setIsClient(true)
   }, [])
 
   // ✅ Do not render anything on the server — wait for client hydration
-  if (!isClient) {
-    return <FormSkeleton />
-  }
-
-  // ✅ After hydration, check if data is ready
-  if (isLoading || !resumeData || !resumeData.template) {
+  if (!isClient || isLoading || !resumeData || !resumeData.template) {
     return <FormSkeleton />
   }
 
@@ -85,4 +81,12 @@ export default function PreviewPage(): JSX.Element {
       </div>
     </ThemeProviderWrapper>
   )
+}
+
+// ✅ Wrap the component with dynamic import to disable SSR
+import dynamic from 'next/dynamic'
+const DynamicPreviewContent = dynamic(() => Promise.resolve(PreviewContent), { ssr: false })
+
+export default function PreviewPage() {
+  return <DynamicPreviewContent />
 }
