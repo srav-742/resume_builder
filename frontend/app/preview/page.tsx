@@ -1,56 +1,53 @@
-// Remove "use client" from the top
-// "use client"
+"use client";
 
-import { useRouter, useSearchParams } from "next/navigation"
-import { Button } from "@/components/ui/button"
-import { Card } from "@/components/ui/card"
-import { useResume } from "@/context/resume-context"
-import { FormSkeleton } from "@/components/form-skeleton"
-import { ResumeHeader } from "@/components/resume-templates/template1"
-import ResumeTemplate1 from "@/components/resume-templates/template1"
-import ResumeTemplate2 from "@/components/resume-templates/template2"
-import ResumeTemplate3 from "@/components/resume-templates/template3"
-import { ArrowLeft } from "lucide-react"
-import { ThemeProviderWrapper } from "@/components/theme-provider-wrapper"
-import { PdfDownloadButton } from "@/components/pdf-download-button"
-import { useEffect, useState } from "react"
+import { useRouter, useSearchParams } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { useResume } from "@/context/resume-context";
+import { FormSkeleton } from "@/components/form-skeleton";
+import { ResumeHeader } from "@/components/resume-templates/template1";
+import ResumeTemplate1 from "@/components/resume-templates/template1";
+import ResumeTemplate2 from "@/components/resume-templates/template2";
+import ResumeTemplate3 from "@/components/resume-templates/template3";
+import { ArrowLeft } from "lucide-react";
+import { ThemeProviderWrapper } from "@/components/theme-provider-wrapper";
+import { PdfDownloadButton } from "@/components/pdf-download-button";
+import { useEffect, useState } from "react";
 
-// ✅ Export dynamic config to prevent SSR
-export const dynamic = 'force-dynamic'
+// ✅ Prevent SSR cache (optional for Vercel dynamic data)
+export const dynamic = "force-dynamic";
 
-// ✅ Create a separate component for the actual preview logic
-function PreviewContent() {
-  const router = useRouter()
-  const searchParams = useSearchParams()
-  const { resumeData, isLoading } = useResume()
-  const [isClient, setIsClient] = useState(false)
+export default function PreviewPage() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const { resumeData, isLoading } = useResume();
+  const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
-    setIsClient(true)
-  }, [])
+    setIsClient(true);
+  }, []);
 
-  // ✅ Wait for client + data to be ready
-  if (!isClient || isLoading || !resumeData || typeof resumeData.template !== 'string') {
-    return <FormSkeleton />
+  if (!isClient || isLoading || !resumeData || typeof resumeData.template !== "string") {
+    return <FormSkeleton />;
   }
+
+  const fromStep = searchParams.get("from") || "personal-info";
+
+  const handleBackToEditor = () => {
+    router.push(`/builder/${fromStep}`);
+  };
 
   function renderTemplate(): JSX.Element {
     switch (resumeData.template) {
       case "template1":
-        return <ResumeTemplate1 data={resumeData} />
+        return <ResumeTemplate1 data={resumeData} />;
       case "template2":
-        return <ResumeTemplate2 data={resumeData} />
+        return <ResumeTemplate2 data={resumeData} />;
       case "template3":
-        return <ResumeTemplate3 data={resumeData} />
+        return <ResumeTemplate3 data={resumeData} />;
       default:
-        return <ResumeTemplate1 data={resumeData} />
+        return <ResumeTemplate1 data={resumeData} />;
     }
-  }
-
-  const fromStep = searchParams.get("from") || "personal-info"
-
-  const handleBackToEditor = () => {
-    router.push(`/builder/${fromStep}`)
   }
 
   return (
@@ -80,13 +77,5 @@ function PreviewContent() {
         </main>
       </div>
     </ThemeProviderWrapper>
-  )
-}
-
-// ✅ Wrap the component with dynamic import to disable SSR
-import dynamic from 'next/dynamic'
-const DynamicPreviewContent = dynamic(() => Promise.resolve(PreviewContent), { ssr: false })
-
-export default function PreviewPage() {
-  return <DynamicPreviewContent />
+  );
 }
