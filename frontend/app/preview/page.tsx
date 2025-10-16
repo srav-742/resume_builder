@@ -18,7 +18,6 @@ import { useEffect, useState } from "react";
 
 // ✅ Tell Next.js: do NOT statically prerender this page
 export const dynamic = "force-dynamic";
-// ✅ Optional: disable static caching entirely
 export const revalidate = 0;
 
 export default function PreviewPage() {
@@ -31,12 +30,12 @@ export default function PreviewPage() {
     setHasMounted(true);
   }, []);
 
-  // 🛑 During prerender (SSG), hasMounted is false → return null or skeleton
+  // 🛑 Guard against prerendering (build-time execution)
   if (!hasMounted) {
     return <FormSkeleton />;
   }
 
-  // Now safe to use client-only hooks and data
+  // Guard against missing or loading data (client-side)
   if (isLoading || !resumeData || typeof resumeData.template !== "string") {
     return <FormSkeleton />;
   }
