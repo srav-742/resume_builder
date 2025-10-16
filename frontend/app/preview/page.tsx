@@ -1,3 +1,5 @@
+// app/preview/page.tsx
+
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
@@ -14,20 +16,28 @@ import { ThemeProviderWrapper } from "@/components/theme-provider-wrapper";
 import { PdfDownloadButton } from "@/components/pdf-download-button";
 import { useEffect, useState } from "react";
 
-// ✅ Prevent SSR cache (optional for Vercel dynamic data)
+// ✅ Tell Next.js: do NOT statically prerender this page
 export const dynamic = "force-dynamic";
+// ✅ Optional: disable static caching entirely
+export const revalidate = 0;
 
 export default function PreviewPage() {
+  const [hasMounted, setHasMounted] = useState(false);
   const router = useRouter();
   const searchParams = useSearchParams();
   const { resumeData, isLoading } = useResume();
-  const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
-    setIsClient(true);
+    setHasMounted(true);
   }, []);
 
-  if (!isClient || isLoading || !resumeData || typeof resumeData.template !== "string") {
+  // 🛑 During prerender (SSG), hasMounted is false → return null or skeleton
+  if (!hasMounted) {
+    return <FormSkeleton />;
+  }
+
+  // Now safe to use client-only hooks and data
+  if (isLoading || !resumeData || typeof resumeData.template !== "string") {
     return <FormSkeleton />;
   }
 
