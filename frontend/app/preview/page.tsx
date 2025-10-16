@@ -7,7 +7,12 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useResume } from "@/context/resume-context";
 import { FormSkeleton } from "@/components/form-skeleton";
-import { ResumeHeader } from "@/components/resume-templates/template1";
+// ❌ WRONG: ResumeHeader is NOT in template1
+// import { ResumeHeader } from "@/components/resume-templates/template1";
+
+// ✅ CORRECT: Import from actual file
+import { ResumeHeader } from "@/components/resume-header";
+
 import ResumeTemplate1 from "@/components/resume-templates/template1";
 import ResumeTemplate2 from "@/components/resume-templates/template2";
 import ResumeTemplate3 from "@/components/resume-templates/template3";
@@ -16,7 +21,6 @@ import { ThemeProviderWrapper } from "@/components/theme-provider-wrapper";
 import { PdfDownloadButton } from "@/components/pdf-download-button";
 import { useEffect, useState } from "react";
 
-// ✅ Only export dynamic — revalidate is ignored in Client Components
 export const dynamic = "force-dynamic";
 
 export default function PreviewPage() {
@@ -29,12 +33,10 @@ export default function PreviewPage() {
     setHasMounted(true);
   }, []);
 
-  // 🛑 During prerender (SSG), hasMounted is false → return skeleton
   if (!hasMounted) {
     return <FormSkeleton />;
   }
 
-  // 🚫 If data not loaded or invalid, show skeleton
   if (isLoading || !resumeData || typeof resumeData.template !== "string") {
     return <FormSkeleton />;
   }
@@ -57,7 +59,6 @@ export default function PreviewPage() {
   return (
     <ThemeProviderWrapper>
       <div className="min-h-screen flex flex-col">
-        {/* Safe: only rendered after mount */}
         <ResumeHeader currentStep="preview" />
         <main className="flex-1 container max-w-6xl mx-auto p-6">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
