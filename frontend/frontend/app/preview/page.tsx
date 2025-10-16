@@ -16,8 +16,9 @@ import { ThemeProviderWrapper } from "@/components/theme-provider-wrapper";
 import { PdfDownloadButton } from "@/components/pdf-download-button";
 import { useEffect, useState } from "react";
 
-// ✅ Only export dynamic — revalidate is ignored in Client Components
+// ✅ Tell Next.js: do NOT statically prerender this page
 export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 export default function PreviewPage() {
   const [hasMounted, setHasMounted] = useState(false);
@@ -29,12 +30,12 @@ export default function PreviewPage() {
     setHasMounted(true);
   }, []);
 
-  // 🛑 During prerender (SSG), hasMounted is false → return skeleton
+  // 🛑 Guard against prerendering (build-time execution)
   if (!hasMounted) {
     return <FormSkeleton />;
   }
 
-  // 🚫 If data not loaded or invalid, show skeleton
+  // Guard against missing or loading data (client-side)
   if (isLoading || !resumeData || typeof resumeData.template !== "string") {
     return <FormSkeleton />;
   }
@@ -47,17 +48,20 @@ export default function PreviewPage() {
 
   function renderTemplate(): JSX.Element {
     switch (resumeData.template) {
-      case "template1": return <ResumeTemplate1 data={resumeData} />;
-      case "template2": return <ResumeTemplate2 data={resumeData} />;
-      case "template3": return <ResumeTemplate3 data={resumeData} />;
-      default: return <ResumeTemplate1 data={resumeData} />;
+      case "template1":
+        return <ResumeTemplate1 data={resumeData} />;
+      case "template2":
+        return <ResumeTemplate2 data={resumeData} />;
+      case "template3":
+        return <ResumeTemplate3 data={resumeData} />;
+      default:
+        return <ResumeTemplate1 data={resumeData} />;
     }
   }
 
   return (
     <ThemeProviderWrapper>
       <div className="min-h-screen flex flex-col">
-        {/* Safe: only rendered after mount */}
         <ResumeHeader currentStep="preview" />
         <main className="flex-1 container max-w-6xl mx-auto p-6">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">

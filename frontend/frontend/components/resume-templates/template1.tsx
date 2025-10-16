@@ -1,10 +1,8 @@
-"use client";
-
-import type { ResumeData } from "@/context/resume-context";
-import { Mail, Phone, MapPin, Link2 } from "lucide-react";
+import type { ResumeData } from "@/context/resume-context"
+import { Mail, Phone, MapPin, Link2 } from "lucide-react"
 
 interface ResumeTemplateProps {
-  data: ResumeData;
+  data: ResumeData
 }
 
 // Changed from `export function` to `export default function`
@@ -289,5 +287,5 @@ export default function ResumeTemplate1({ data }: ResumeTemplateProps) {
         </div>
       </div>
     </div>
-  );
+  )
 }
