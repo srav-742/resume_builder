@@ -93,6 +93,68 @@ export async function saveResume(data: ResumeData): Promise<ResumeData> {
   }
 }
 
+// ✅ NEW: Update a specific resume by ID (for explicit edits with resume._id)
+export async function updateResumeById(id: string, data: ResumeData): Promise<ResumeData> {
+  try {
+    const auth = getAuth()
+    const currentUser = auth.currentUser
+
+    if (!currentUser) {
+      throw new Error("User not authenticated")
+    }
+
+    const token = await currentUser.getIdToken()
+
+    const response = await fetch(`${API_URL}/resumes/${id}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`,
+      },
+      body: JSON.stringify(data),
+    })
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}))
+      throw new Error(errorData.error || "Failed to update resume")
+    }
+
+    return await response.json()
+  } catch (error) {
+    console.error("Error updating resume by ID:", error)
+    throw error
+  }
+}
+
+// ✅ NEW: Delete a specific resume by ID
+export async function deleteResumeById(id: string): Promise<void> {
+  try {
+    const auth = getAuth()
+    const currentUser = auth.currentUser
+
+    if (!currentUser) {
+      throw new Error("User not authenticated")
+    }
+
+    const token = await currentUser.getIdToken()
+
+    const response = await fetch(`${API_URL}/resumes/${id}`, {
+      method: "DELETE",
+      headers: {
+        "Authorization": `Bearer ${token}`,
+      },
+    })
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}))
+      throw new Error(errorData.error || "Failed to delete resume")
+    }
+  } catch (error) {
+    console.error("Error deleting resume by ID:", error)
+    throw error
+  }
+}
+
 // Analyze resume against job description
 export async function analyzeResume(
   resumeData: ResumeData,
