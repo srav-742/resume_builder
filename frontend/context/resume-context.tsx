@@ -1,6 +1,7 @@
+// frontend/context/ResumeContext.tsx
 "use client";
 
-import { createContext, useContext, useState, useEffect, type ReactNode } from "react";
+import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { auth, onAuthStateChanged, type User } from "@/lib/firebase";
 import { getUserResume } from "@/services/api";
@@ -58,6 +59,7 @@ export type ResumeData = {
 type ResumeContextType = {
   resumeData: ResumeData;
   updateResumeData: (data: ResumeData) => void;
+  updateSection: <K extends keyof ResumeData>(section: K, value: ResumeData[K]) => void;
   isLoading: boolean;
   user: User | null;
 };
@@ -142,8 +144,16 @@ export function ResumeProvider({ children }: { children: ReactNode }) {
     setResumeData(data);
   }
 
+  // ✅ Stabilize updateSection with useCallback to prevent infinite loop
+  const updateSection = useCallback(<K extends keyof ResumeData>(section: K, value: ResumeData[K]) => {
+    setResumeData(prev => ({
+      ...prev,
+      [section]: value
+    }));
+  }, []);
+
   return (
-    <ResumeContext.Provider value={{ resumeData, updateResumeData, isLoading, user }}>
+    <ResumeContext.Provider value={{ resumeData, updateResumeData, updateSection, isLoading, user }}>
       {children}
     </ResumeContext.Provider>
   );

@@ -1,42 +1,48 @@
-"use client"
+"use client";
 
-import { Button } from "@/components/ui/button"
-import { Card } from "@/components/ui/card"
-import { useResume } from "@/context/resume-context"
-// ✅ Changed to default imports
-import ResumeTemplate1 from "@/components/resume-templates/template1"
-import ResumeTemplate2 from "@/components/resume-templates/template2"
-import ResumeTemplate3 from "@/components/resume-templates/template3"
-import { Eye } from "lucide-react"
-import Link from "next/link"
-import { usePathname } from "next/navigation"
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { useResume } from "@/context/resume-context";
+// ✅ Import all templates (including template4)
+import ResumeTemplate1 from "@/components/resume-templates/template1";
+import ResumeTemplate2 from "@/components/resume-templates/template2";
+import ResumeTemplate3 from "@/components/resume-templates/template3";
+import ResumeTemplate4 from "@/components/resume-templates/template4";
+import ResumeTemplate5 from "@/components/resume-templates/template5"; // 👈 ADDED
+import { Eye } from "lucide-react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 
 export function ResumePreview() {
-  const { resumeData, isLoading } = useResume()
-  const pathname = usePathname()
+  const { resumeData, isLoading } = useResume();
+  const pathname = usePathname();
 
   // Map current pathname to step name for ?from=...
   const getCurrentStep = () => {
-    if (pathname.includes("/builder/education")) return "education"
-    if (pathname.includes("/builder/work-experience")) return "work-experience"
-    if (pathname.includes("/builder/skills-projects")) return "skills-projects"
-    if (pathname.includes("/builder/additional-sections")) return "additional-sections"
-    if (pathname.includes("/builder/ats-score")) return "ats-score"
-    return "personal-info" // default fallback
-  }
+    if (pathname.includes("/builder/education")) return "education";
+    if (pathname.includes("/builder/work-experience")) return "work-experience";
+    if (pathname.includes("/builder/skills-projects")) return "skills-projects";
+    if (pathname.includes("/builder/additional-sections")) return "additional-sections";
+    if (pathname.includes("/builder/ats-score")) return "ats-score";
+    return "personal-info"; // default fallback
+  };
 
-  const fullPreviewUrl = `/preview?from=${getCurrentStep()}`
+  const fullPreviewUrl = `/preview?from=${getCurrentStep()}`;
 
   function renderTemplate() {
     switch (resumeData.template) {
       case "template1":
-        return <ResumeTemplate1 data={resumeData} />
+        return <ResumeTemplate1 data={resumeData} />;
       case "template2":
-        return <ResumeTemplate2 data={resumeData} />
+        return <ResumeTemplate2 data={resumeData} />;
       case "template3":
-        return <ResumeTemplate3 data={resumeData} />
+        return <ResumeTemplate3 data={resumeData} />;
+      case "template4": // 👈 ADDED — critical!
+        return <ResumeTemplate4 data={resumeData} />;
+      case "template5":
+        return <ResumeTemplate5 data={resumeData}/>; 
       default:
-        return <ResumeTemplate1 data={resumeData} />
+        return <ResumeTemplate1 data={resumeData} />;
     }
   }
 
@@ -47,7 +53,7 @@ export function ResumePreview() {
           <p className="text-muted-foreground">Loading preview...</p>
         </div>
       </Card>
-    )
+    );
   }
 
   return (
@@ -62,13 +68,14 @@ export function ResumePreview() {
         </Link>
       </div>
 
-      {/* Updated: Remove scale transform, use scrollable container with fixed width matching full preview */}
+      {/* Preview Container — keeps your 8.5in width for print fidelity */}
       <Card className="p-4 overflow-auto bg-white">
         <div className="w-[8.5in] min-h-[11in] bg-white shadow-sm">
           {renderTemplate()}
         </div>
       </Card>
 
+      {/* Auto-Save & Tips */}
       <div className="bg-muted p-4 rounded-lg">
         <h4 className="font-medium mb-2">Auto-Save Enabled</h4>
         <p className="text-sm text-muted-foreground">
@@ -99,5 +106,5 @@ export function ResumePreview() {
         </ul>
       </div>
     </div>
-  )
+  );
 }

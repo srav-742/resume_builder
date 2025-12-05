@@ -1,23 +1,25 @@
-"use client"
+// app/templates/page.tsx
+"use client";
 
-import { Card, CardContent } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import Image from "next/image"
-import { ResumeHeader } from "@/components/resume-header"
-import { ThemeProviderWrapper } from "@/components/theme-provider-wrapper"
-import { useResume } from "@/context/resume-context"
-import { useRouter } from "next/navigation"
-import { useToast } from "@/components/ui/use-toast"
-import { useState } from "react"
-import { saveResume } from "@/services/api"
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import Image from "next/image";
+import { ResumeHeader } from "@/components/resume-header";
+import { ThemeProviderWrapper } from "@/components/theme-provider-wrapper";
+import { useResume } from "@/context/resume-context";
+import { useRouter } from "next/navigation";
+import { useToast } from "@/components/ui/use-toast";
+import { useState } from "react";
+import { saveResume } from "@/services/api";
 
 export default function TemplatesPage() {
-  const { resumeData, updateResumeData } = useResume()
-  const router = useRouter()
-  const { toast } = useToast()
-  const [selectedTemplate, setSelectedTemplate] = useState<string>(resumeData.template || "template1")
-  const [isLoading, setIsLoading] = useState<boolean>(false)
+  const { resumeData, updateResumeData } = useResume();
+  const router = useRouter();
+  const { toast } = useToast();
+  const [selectedTemplate, setSelectedTemplate] = useState<string>(resumeData.template || "template1");
+  const [isLoading, setIsLoading] = useState<boolean>(false);
 
+  // ✅ ADDED template6 — matches your image (pink headings, single column)
   const templates = [
     {
       id: "template1",
@@ -37,41 +39,60 @@ export default function TemplatesPage() {
       image: "/placeholder.svg?height=400&width=300",
       description: "Simple and elegant design focusing on content",
     },
-  ]
+    {
+      id: "template4",
+      name: "Web Designer",
+      image: "/placeholder.svg?height=400&width=300",
+      description: "Clean, single-column layout optimized for web designers and creatives",
+    },
+    {
+      id: "template5",
+      name: "Professional Profile",
+      image: "/placeholder.svg?height=400&width=300",
+      description: "Clean design with profile photo and two-column skills",
+    },
+    // ✅ NEW TEMPLATE 6 — Pink headings, single column, data analyst style
+    {
+      id: "template6",
+      name: "Data Analyst",
+      image: "/placeholder.svg?height=400&width=300", // Replace with real image later
+      description: "Minimalist single-column layout with pink headings — perfect for data analysts and professionals.",
+    },
+  ];
 
   async function handleTemplateSelect(templateId: string) {
-    setIsLoading(true)
-    setSelectedTemplate(templateId)
+    setIsLoading(true);
+    setSelectedTemplate(templateId);
 
     try {
       const updatedData = {
         ...resumeData,
         template: templateId,
-      }
+      };
 
       // ✅ Update local state FIRST (saves to localStorage)
-      updateResumeData(updatedData)
+      updateResumeData(updatedData);
 
       // ✅ NAVIGATE IMMEDIATELY — don't wait for backend
-      router.push(`/builder/personal-info`)
+      router.push(`/builder/personal-info`);
 
       // Save to backend in background
-      await saveResume(updatedData)
+      await saveResume(updatedData);
 
       toast({
         title: "Template Selected",
         description: `You've selected the ${templates.find((t) => t.id === templateId)?.name} template.`,
-      })
+      });
     } catch (error) {
-      console.error("Error saving template selection:", error)
+      console.error("Error saving template selection:", error);
       toast({
         variant: "destructive",
         title: "Error",
         description: "Failed to save template selection. Please try again.",
-      })
+      });
       // Navigation already happened — user is not blocked
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
   }
 
@@ -85,7 +106,8 @@ export default function TemplatesPage() {
             <p className="text-muted-foreground">Select a template to get started with your resume</p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          {/* ✅ Grid now shows 4 cards per row */}
+          <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-8">
             {templates.map((template) => (
               <Card
                 key={template.id}
@@ -109,5 +131,5 @@ export default function TemplatesPage() {
         </main>
       </div>
     </ThemeProviderWrapper>
-  )
+  );
 }

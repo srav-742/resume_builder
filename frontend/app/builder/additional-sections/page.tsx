@@ -1,6 +1,7 @@
+// app/builder/additional-sections/page.tsx
 "use client"
 
-import { useState, useEffect } from "react" // 👈 Added useEffect
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useFieldArray, useForm } from "react-hook-form"
@@ -9,7 +10,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Form } from "@/components/ui/form"
 import { useToast } from "@/components/ui/use-toast"
-import { useResume } from "@/context/resume-context" // 👈 Already imported
+import { useResume } from "@/context/resume-context"
 import { saveResume } from "@/services/api"
 import { BuilderNavigation } from "@/components/builder-navigation"
 import { FormSkeleton } from "@/components/form-skeleton"
@@ -38,10 +39,9 @@ type AdditionalSectionsValues = z.infer<typeof additionalSectionsSchema>
 export default function AdditionalSectionsPage() {
   const router = useRouter()
   const { toast } = useToast()
-  const { user, resumeData, updateResumeData, isLoading } = useResume() // 👈 Destructure `user`
+  const { user, resumeData, updateResumeData, isLoading } = useResume()
   const [isSaving, setIsSaving] = useState(false)
 
-  // 👇 Added: Redirect unauthenticated users
   useEffect(() => {
     if (!isLoading && !user) {
       router.push("/login")
@@ -55,7 +55,7 @@ export default function AdditionalSectionsPage() {
   const form = useForm<AdditionalSectionsValues>({
     resolver: zodResolver(additionalSectionsSchema),
     defaultValues: {
-      sections: resumeData.additionalSections?.length
+      sections: Array.isArray(resumeData.additionalSections)
         ? resumeData.additionalSections.map((section) => ({
             ...section,
             isCollapsed: true,
@@ -80,7 +80,6 @@ export default function AdditionalSectionsPage() {
     setIsSaving(true)
 
     try {
-      // Remove isCollapsed property before saving
       const sections = values.sections.map(({ isCollapsed, ...section }) => section)
 
       const updatedData = {
@@ -141,7 +140,6 @@ export default function AdditionalSectionsPage() {
               Add Another Section
             </Button>
 
-            {/* ✅ ADDED: View Full Preview Button */}
             <div className="flex justify-end">
               <Button
                 type="button"
