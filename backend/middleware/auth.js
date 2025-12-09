@@ -1,4 +1,3 @@
-// middleware/auth.js
 const admin = require('../lib/firebaseAdmin');
 
 const authenticate = async (req, res, next) => {
