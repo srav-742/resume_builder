@@ -20,8 +20,8 @@ const PORT = process.env.PORT || 5000;
 const corsOptions = {
   origin: [
     'http://localhost:3000',
-    'https://resume-builder-ydr2.vercel.app',
-    'https://resume-builder-lyart-six.vercel.app'
+    'https://resume-builder-ydr2.vercel.app',   // ✅ removed trailing space
+    'https://resume-builder-lyart-six.vercel.app' // ✅ removed trailing space
   ],
   credentials: true,
 };
