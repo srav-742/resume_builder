@@ -1,17 +1,15 @@
 const express = require('express');
 const authenticate = require('../middleware/auth');
 const Resume = require('../models/Resume');
-const User = require('../models/User'); // ✅ Added import
+const User = require('../models/User');
 
-const router = express.Router(); // ✅ Critical: router must be declared
+const router = express.Router();
 
-// =============== EXISTING ROUTES (UPDATED FOR SAFETY) ===============
-
-// GET /api/user/resumes → fetch user's resumes
-router.get('/user/resumes', authenticate, async (req, res) => {
+// ✅ GET /api/resume → fetch user's resumes (note: route is /api/resume, not /api/user/resumes)
+router.get('/', authenticate, async (req, res) => {
   try {
     const { uid: firebaseUid } = req.user;
-    const resumes = await Resume.find({ userId: firebaseUid }).sort({ updatedAt: -1 });
+    const resumes = await Resume.find({ firebaseUid }).sort({ updatedAt: -1 });
     res.status(200).json({ success: true, resumes });
   } catch (error) {
     console.error('Error fetching resumes:', error);
@@ -19,15 +17,13 @@ router.get('/user/resumes', authenticate, async (req, res) => {
   }
 });
 
-// POST /api/user/resumes → save or update user's resume (ENRICHED WITH PROFILE)
-router.post('/user/resumes', authenticate, async (req, res) => {
+// ✅ POST /api/resume → save/update resume
+router.post('/', authenticate, async (req, res) => {
   try {
     const { uid: firebaseUid } = req.user;
     const resumeData = req.body;
 
-    // ✅ Fetch or create user profile
     let userProfile = await User.findOne({ firebaseUid });
-
     if (!userProfile) {
       userProfile = new User({
         firebaseUid,
@@ -37,48 +33,37 @@ router.post('/user/resumes', authenticate, async (req, res) => {
       await userProfile.save();
     }
 
-    // ✅ Extract and safely normalize incoming personalInfo
     const incoming = resumeData.personalInfo || {};
-
-    // ✅ Safely handle dateOfBirth (string from frontend ↔ Date in DB)
     let dobStr = incoming.dateOfBirth;
     if (!dobStr && userProfile.dateOfBirth) {
-      const iso = userProfile.dateOfBirth.toISOString();
-      dobStr = iso.split('T')[0]; // "YYYY-MM-DD"
+      dobStr = userProfile.dateOfBirth.toISOString().split('T')[0];
     }
 
-    // ✅ Build enriched personalInfo — resume + profile merge
     const enrichedPersonalInfo = {
       fullName: (incoming.fullName || userProfile.fullName || "").trim(),
-      email: req.user.email, // always from Firebase auth (trustworthy)
+      email: req.user.email,
       phone: (incoming.phone || userProfile.phone || "").trim(),
       location: (incoming.location || userProfile.address || "").split('\n')[0].trim(),
       summary: (incoming.summary || userProfile.summary || "").trim(),
-
-      // Profile-specific fields (preserved for future use)
       gender: incoming.gender || userProfile.gender || "",
       dateOfBirth: dobStr || "",
       address: (incoming.address || userProfile.address || "").trim(),
       profilePicture: incoming.profilePicture || userProfile.profilePicture || "",
     };
 
-    // ✅ Build final resume data
     const cleanData = {
       ...resumeData,
-      userId: firebaseUid,
+      firebaseUid, // ✅ use firebaseUid
       personalInfo: enrichedPersonalInfo,
       updatedAt: new Date(),
     };
 
-    // ✅ Upsert resume
-    let resume = await Resume.findOne({ userId: firebaseUid });
+    let resume = await Resume.findOne({ firebaseUid });
 
     if (resume) {
-      // Update existing
       resume.set(cleanData);
       await resume.save();
     } else {
-      // Create new
       resume = new Resume(cleanData);
       await resume.save();
     }
@@ -95,24 +80,14 @@ router.post('/user/resumes', authenticate, async (req, res) => {
   }
 });
 
-// =============== NEW ROUTES (AS PER MENTOR) ===============
-
-// PUT /api/resumes/:id → update a specific resume by ID (with ownership check)
-router.put('/resumes/:id', authenticate, async (req, res) => {
+// ✅ PUT /api/resume/:id → update by ID
+router.put('/:id', authenticate, async (req, res) => {
   try {
     const { id } = req.params;
     const { uid: firebaseUid } = req.user;
     const updateData = req.body;
 
-    // Enforce ownership & clean update
-    const cleanUpdateData = {
-      ...updateData,
-      userId: firebaseUid,
-      updatedAt: new Date(),
-    };
-
-    const resume = await Resume.findOne({ _id: id, userId: firebaseUid });
-
+    const resume = await Resume.findOne({ _id: id, firebaseUid });
     if (!resume) {
       return res.status(404).json({
         success: false,
@@ -120,7 +95,11 @@ router.put('/resumes/:id', authenticate, async (req, res) => {
       });
     }
 
-    resume.set(cleanUpdateData);
+    resume.set({
+      ...updateData,
+      firebaseUid,
+      updatedAt: new Date(),
+    });
     await resume.save();
 
     res.status(200).json({ success: true, resume });
@@ -133,14 +112,13 @@ router.put('/resumes/:id', authenticate, async (req, res) => {
   }
 });
 
-// DELETE /api/resumes/:id → delete a specific resume by ID (with ownership check)
-router.delete('/resumes/:id', authenticate, async (req, res) => {
+// ✅ DELETE /api/resume/:id
+router.delete('/:id', authenticate, async (req, res) => {
   try {
     const { id } = req.params;
     const { uid: firebaseUid } = req.user;
 
-    const result = await Resume.deleteOne({ _id: id, userId: firebaseUid });
-
+    const result = await Resume.deleteOne({ _id: id, firebaseUid });
     if (result.deletedCount === 0) {
       return res.status(404).json({
         success: false,
