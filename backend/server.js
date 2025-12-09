@@ -43,7 +43,7 @@ mongoose
 // ❌ REMOVED: app.use('/api/profile', authenticate, profileRoutes);
 app.use('/api/user', authenticate, userRoutes);
 app.use('/api/resume', authenticate, resumeRoutes);
-app.use('/api/profile', profileRoutes); 
+app.use('/api/profile', authenticate, profileRoutes);
 
 // Optional: catch-all /api route (only if needed, and place LAST)
 // app.use('/api', authenticate, require('./routes/api'));

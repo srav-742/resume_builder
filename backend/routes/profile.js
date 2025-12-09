@@ -1,30 +1,25 @@
-// backend/routes/profile.js
-
+// routes/profile.js
 const express = require('express');
 const User = require('../models/User');
 const router = express.Router();
 
-// GET user profile
 router.get('/', async (req, res) => {
   try {
-    const { uid } = req.user; // ✅ use `uid` (from auth.js)
-    if (!uid) {
-      return res.status(400).json({ error: 'User UID not found' });
-    }
+    const { uid } = req.user; // from authenticate middleware
+    const user = await User.findOne({ firebaseUid: uid });
 
-    const user = await User.findOne({ firebaseUid: uid }); // ✅ match against `firebaseUid` in DB
     if (!user) {
-      return res.status(404).json({ error: 'User not found in database' });
+      return res.status(404).json({ error: 'User not found' });
     }
 
     res.json({
-      name: user.name,
+      name: user.name || '',
       email: user.email,
-      dateOfBirth: user.dateOfBirth || '',
-      mobile: user.mobile || '',
+      dateOfBirth: user.dateOfBirth ? user.dateOfBirth.toISOString().split('T')[0] : '',
+      mobile: user.phone || '',        // ✅ model uses 'phone'
       address: user.address || '',
       gender: user.gender || '',
-      profilePicture: user.profilePicture || '',
+      profilePicture: user.profilePicture || ''
     });
   } catch (error) {
     console.error('Profile fetch error:', error);
@@ -32,19 +27,23 @@ router.get('/', async (req, res) => {
   }
 });
 
-// PUT update profile
 router.put('/', async (req, res) => {
   try {
-    const { uid } = req.user; // ✅
-    if (!uid) {
-      return res.status(400).json({ error: 'User UID not found' });
-    }
-
+    const { uid } = req.user;
     const { dateOfBirth, mobile, address, gender, profilePicture } = req.body;
 
+    // Convert empty strings to undefined to avoid enum errors
+    const updateData = {
+      phone: mobile || undefined,        // ✅ maps to 'phone' in model
+      address: address || undefined,
+      profilePicture: profilePicture || undefined,
+      gender: gender && gender !== '' ? gender : undefined, // ✅ critical!
+      dateOfBirth: dateOfBirth ? new Date(dateOfBirth) : undefined
+    };
+
     const user = await User.findOneAndUpdate(
-      { firebaseUid: uid }, // ✅ match by `firebaseUid`
-      { $set: { dateOfBirth, mobile, address, gender, profilePicture } },
+      { firebaseUid: uid },
+      { $set: updateData },
       { new: true }
     );
 
@@ -56,11 +55,11 @@ router.put('/', async (req, res) => {
       message: 'Profile updated successfully',
       name: user.name,
       email: user.email,
-      dateOfBirth: user.dateOfBirth,
-      mobile: user.mobile,
-      address: user.address,
-      gender: user.gender,
-      profilePicture: user.profilePicture,
+      dateOfBirth: user.dateOfBirth ? user.dateOfBirth.toISOString().split('T')[0] : '',
+      mobile: user.phone || '',
+      address: user.address || '',
+      gender: user.gender || '',
+      profilePicture: user.profilePicture || ''
     });
   } catch (error) {
     console.error('Profile update error:', error);

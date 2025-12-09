@@ -1,3 +1,4 @@
+// models/User.js
 const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
 
@@ -27,18 +28,18 @@ const userSchema = new mongoose.Schema({
     minlength: 6
   },
 
-  // ✅ Profile fields — now includes summary
-  fullName: { type: String, default: "" },
-  phone: { type: String, default: "" },
+  // ✅ FIXED: Removed invalid default=""
+  fullName: { type: String },
+  phone: { type: String },
   gender: { 
     type: String, 
-    enum: ["Male", "Female", "Other", "Prefer not to say"], 
-    default: "" 
+    enum: ["Male", "Female", "Other", "Prefer not to say"]
+    // 👆 No default → field is optional and can be undefined
   },
   dateOfBirth: { type: Date }, // stored as ISO Date
-  address: { type: String, default: "" },
-  profilePicture: { type: String, default: "" }, // base64 or URL
-  summary: { type: String, default: "" } // ✅ ADD THIS — for resume sync
+  address: { type: String },
+  profilePicture: { type: String }, // base64 or URL
+  summary: { type: String }
 }, {
   timestamps: true
 });
