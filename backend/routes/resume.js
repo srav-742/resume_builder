@@ -24,7 +24,6 @@ router.post('/', authenticate, async (req, res) => {
     const { uid: firebaseUid } = req.user;
     const resumeData = req.body;
 
-    // Ensure User exists (minimal creation)
     let userProfile = await User.findOne({ firebaseUid });
     if (!userProfile) {
       userProfile = new User({
@@ -36,11 +35,8 @@ router.post('/', authenticate, async (req, res) => {
     }
 
     const incoming = resumeData.personalInfo || {};
-    
-    // Keep dateOfBirth as string (YYYY-MM-DD)
     let dobStr = incoming.dateOfBirth;
     if (!dobStr && userProfile.dateOfBirth) {
-      // If stored as Date in User, convert; else use as-is
       dobStr = userProfile.dateOfBirth instanceof Date
         ? userProfile.dateOfBirth.toISOString().split('T')[0]
         : userProfile.dateOfBirth || '';
@@ -61,14 +57,12 @@ router.post('/', authenticate, async (req, res) => {
     const cleanData = {
       firebaseUid,
       personalInfo: enrichedPersonalInfo,
-      // Include other top-level fields if sent (e.g., education, template, etc.)
       ...(resumeData.education !== undefined && { education: resumeData.education }),
       ...(resumeData.experience !== undefined && { experience: resumeData.experience }),
       ...(resumeData.template !== undefined && { template: resumeData.template }),
       updatedAt: new Date(),
     };
 
-    // Upsert: find or create
     let resume = await Resume.findOne({ firebaseUid });
     if (resume) {
       resume.set(cleanData);
@@ -81,12 +75,9 @@ router.post('/', authenticate, async (req, res) => {
     res.status(200).json({ success: true, resume });
   } catch (error) {
     console.error('Error saving resume:', error);
-    // Always show error in development; you can disable later
     res.status(500).json({
       success: false,
       error: 'Failed to save resume. Please try again.',
-      // Uncomment below for debugging only:
-      // details: error.message
     });
   }
 });
@@ -106,9 +97,8 @@ router.put('/:id', authenticate, async (req, res) => {
       });
     }
 
-    // Allow partial updates
     if (updateData.personalInfo) {
-      resume.personalInfo = { ...resume.personalInfo, ...updateDdata.personalInfo };
+      resume.personalInfo = { ...resume.personalInfo, ...updateData.personalInfo }; // ✅ Fixed typo
     }
     if (updateData.education !== undefined) resume.education = updateData.education;
     if (updateData.experience !== undefined) resume.experience = updateData.experience;
