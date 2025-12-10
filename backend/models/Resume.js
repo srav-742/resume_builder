@@ -10,7 +10,7 @@ const personalInfoSchema = new mongoose.Schema({
   summary: { type: String, default: '' },
   gender: { 
     type: String, 
-    enum: ['Male', 'Female', 'Other', ''], 
+    enum: ['male', 'female', 'other', ''], // ✅ CHANGED TO LOWERCASE
     default: '' 
   },
   dateOfBirth: { type: String, default: '' }, // YYYY-MM-DD
