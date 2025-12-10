@@ -1,17 +1,25 @@
 "use client"
 
-import { useState, useEffect } from "react" // 👈 Added useEffect
+import { useState, useEffect } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
+import {
+  Form,
+  FormControl,
+  FormDescription, // ✅ IMPORTED
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage
+} from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { useToast } from "@/components/ui/use-toast"
-import { useResume } from "@/context/resume-context" // 👈 Already imported
+import { useResume } from "@/context/resume-context"
 import { saveResume } from "@/services/api"
 import { BuilderNavigation } from "@/components/builder-navigation"
 import { FormSkeleton } from "@/components/form-skeleton"
@@ -35,37 +43,52 @@ export default function PersonalInfoPage() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const { toast } = useToast()
-  const { user, resumeData, updateResumeData, isLoading } = useResume() // 👈 Destructure `user`
+  const { user, resumeData, updateResumeData, isLoading } = useResume()
   const [isSaving, setIsSaving] = useState(false)
 
-  // 👇 Added: Redirect unauthenticated users
+  // ✅ DEFINE useForm AT THE TOP — BEFORE any conditional logic
+  const form = useForm<PersonalInfoValues>({
+    resolver: zodResolver(personalInfoSchema),
+    defaultValues: {
+      fullName: "",
+      email: "",
+      phone: "",
+      location: "",
+      profilePicture: "",
+      summary: "",
+    },
+  })
+
+  // ✅ Sync form with resume data when it loads
+  useEffect(() => {
+    if (resumeData?.personalInfo) {
+      form.reset({
+        fullName: resumeData.personalInfo.fullName || "",
+        email: resumeData.personalInfo.email || "",
+        phone: resumeData.personalInfo.phone || "",
+        location: resumeData.personalInfo.location || "",
+        profilePicture: resumeData.personalInfo.profilePicture || "",
+        summary: resumeData.personalInfo.summary || "",
+      })
+    }
+  }, [resumeData, form])
+
+  // ✅ Handle authentication redirect
   useEffect(() => {
     if (!isLoading && !user) {
       router.push("/login")
     }
   }, [user, isLoading, router])
 
+  // ✅ Conditional render AFTER all hooks
   if (isLoading || !user) {
     return <FormSkeleton />
   }
 
   const template = searchParams.get("template") || resumeData.template || "template1"
 
-  const form = useForm<PersonalInfoValues>({
-    resolver: zodResolver(personalInfoSchema),
-    defaultValues: {
-      fullName: resumeData.personalInfo?.fullName || "",
-      email: resumeData.personalInfo?.email || "",
-      phone: resumeData.personalInfo?.phone || "",
-      location: resumeData.personalInfo?.location || "",
-      profilePicture: resumeData.personalInfo?.profilePicture || "",
-      summary: resumeData.personalInfo?.summary || "",
-    },
-  })
-
   async function onSubmit(values: PersonalInfoValues) {
     setIsSaving(true)
-
     try {
       const updatedData = {
         ...resumeData,
@@ -97,7 +120,9 @@ export default function PersonalInfoPage() {
     <Card>
       <CardHeader>
         <CardTitle>Personal Information</CardTitle>
-        <CardDescription>Add your personal details to help employers contact you</CardDescription>
+        <CardDescription>
+          Add your personal details to help employers contact you
+        </CardDescription>
       </CardHeader>
       <CardContent>
         <Form {...form}>
@@ -165,9 +190,11 @@ export default function PersonalInfoPage() {
                 <FormItem>
                   <FormLabel>Profile Picture URL</FormLabel>
                   <FormControl>
-                    <Input placeholder="https://example.com/your-photo.jpg      " {...field} />
+                    <Input placeholder="https://example.com/your-photo.jpg" {...field} />
                   </FormControl>
-                  <FormDescription>Recommended: Square JPG or PNG image URL</FormDescription>
+                  <FormDescription>
+                    Recommended: Square JPG or PNG image URL
+                  </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
@@ -195,7 +222,6 @@ export default function PersonalInfoPage() {
               )}
             />
 
-            {/* ✅ ADDED: View Full Preview Button */}
             <div className="flex justify-end">
               <Button
                 type="button"
@@ -208,7 +234,11 @@ export default function PersonalInfoPage() {
             </div>
 
             <BuilderNavigation>
-              <Button type="button" variant="outline" onClick={() => router.push("/builder/templates")}>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => router.push("/builder/templates")}
+              >
                 Previous
               </Button>
               <div className="flex items-center gap-4">

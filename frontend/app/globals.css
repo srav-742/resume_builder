@@ -159,3 +159,49 @@
 .pdf-compact section {
   margin-bottom: 10px !important;
 }
+
+/* ✅ Fix for full /preview page — ensures resume fits screen */
+#resume-content {
+  width: 100% !important;
+  max-width: 8.5in !important;
+  margin: 0 auto !important;
+}
+
+/* Optional: improve padding on small screens */
+@media (max-width: 768px) {
+  #resume-content {
+    padding: 0 8px !important;
+  }
+}
+
+/* ✅ CRITICAL: Fix for SIDE PREVIEW — ensures templates use full available width */
+.resume-template {
+  width: 100% !important;
+  max-width: none !important;
+  padding: 0.75rem !important;
+  box-sizing: border-box !important;
+  min-width: 0 !important;
+}
+
+/* Ensure all child elements respect full width */
+.resume-template * {
+  box-sizing: border-box !important;
+}
+
+/* Responsive adjustments for builder side preview */
+@media (max-width: 1024px) {
+  .resume-template {
+    padding: 0.5rem !important;
+  }
+  .resume-template h1,
+  .resume-template h2,
+  .resume-template h3 {
+    font-size: 1em !important;
+  }
+  .resume-template p,
+  .resume-template li,
+  .resume-template div {
+    font-size: 0.85em !important;
+    line-height: 1.4 !important;
+  }
+}

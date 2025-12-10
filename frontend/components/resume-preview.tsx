@@ -3,19 +3,23 @@
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useResume } from "@/context/resume-context";
-// ✅ Import all templates (including template4)
 import ResumeTemplate1 from "@/components/resume-templates/template1";
 import ResumeTemplate2 from "@/components/resume-templates/template2";
 import ResumeTemplate3 from "@/components/resume-templates/template3";
 import ResumeTemplate4 from "@/components/resume-templates/template4";
-import ResumeTemplate5 from "@/components/resume-templates/template5"; // 👈 ADDED
+import ResumeTemplate5 from "@/components/resume-templates/template5";
+import ResumeTemplate6 from "@/components/resume-templates/template6";
 import { Eye } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useEffect, useRef, useState } from "react";
 
 export function ResumePreview() {
-  const { resumeData, isLoading } = useResume();
+  const { resumeData, isLoading } = useResume(); // ✅ Fixed: assuming context exports resumeData
   const pathname = usePathname();
+  const containerRef = useRef<HTMLDivElement>(null);
+  const resumeRef = useRef<HTMLDivElement>(null);
+  const [scale, setScale] = useState(1);
 
   // Map current pathname to step name for ?from=...
   const getCurrentStep = () => {
@@ -30,6 +34,8 @@ export function ResumePreview() {
   const fullPreviewUrl = `/preview?from=${getCurrentStep()}`;
 
   function renderTemplate() {
+    if (!resumeData) return null;
+
     switch (resumeData.template) {
       case "template1":
         return <ResumeTemplate1 data={resumeData} />;
@@ -37,14 +43,30 @@ export function ResumePreview() {
         return <ResumeTemplate2 data={resumeData} />;
       case "template3":
         return <ResumeTemplate3 data={resumeData} />;
-      case "template4": // 👈 ADDED — critical!
+      case "template4":
         return <ResumeTemplate4 data={resumeData} />;
       case "template5":
-        return <ResumeTemplate5 data={resumeData}/>; 
+        return <ResumeTemplate5 data={resumeData} />;
+      case "template6":
+        return <ResumeTemplate6 data={resumeData} />;
       default:
         return <ResumeTemplate1 data={resumeData} />;
     }
   }
+
+  // 💡 Auto-scale the resume to fit the preview container width
+  useEffect(() => {
+    const resumeWidth = 816; // 8.5in * 96px/in
+
+    if (containerRef.current) {
+      const containerWidth = containerRef.current.clientWidth;
+      if (containerWidth > 0 && resumeWidth > containerWidth) {
+        setScale(containerWidth / resumeWidth);
+      } else {
+        setScale(1);
+      }
+    }
+  }, [resumeData]);
 
   if (isLoading) {
     return (
@@ -68,10 +90,31 @@ export function ResumePreview() {
         </Link>
       </div>
 
-      {/* Preview Container — keeps your 8.5in width for print fidelity */}
-      <Card className="p-4 overflow-auto bg-white">
-        <div className="w-[8.5in] min-h-[11in] bg-white shadow-sm">
-          {renderTemplate()}
+      {/* ✅ FIXED: Responsive preview container with controlled height */}
+      <Card className="p-4 overflow-hidden bg-white">
+        <div
+          ref={containerRef}
+          className="w-full flex justify-center"
+          style={{
+            minHeight: "200px",
+            maxHeight: "calc(100vh - 200px)", // Limit height to avoid excessive scrolling
+            overflowY: "auto", // Allow vertical scroll if needed
+          }}
+        >
+          <div
+            ref={resumeRef}
+            className="bg-white"
+            style={{
+              width: "816px",
+              transform: `scale(${scale})`,
+              transformOrigin: "top left",
+              transition: "transform 0.2s ease-in-out",
+              // Ensure content respects scaled dimensions
+              boxSizing: "border-box",
+            }}
+          >
+            {renderTemplate()}
+          </div>
         </div>
       </Card>
 

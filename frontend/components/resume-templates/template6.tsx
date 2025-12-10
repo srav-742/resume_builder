@@ -2,7 +2,7 @@
 "use client";
 
 import type { ResumeData } from "@/context/resume-context";
-import { Mail, Phone, MapPin, Briefcase, GraduationCap, Code, Trophy, BookOpen, Languages } from "lucide-react";
+import { Mail, Phone, MapPin, Briefcase, GraduationCap, Code, Trophy, BookOpen, Languages, Link2 } from "lucide-react";
 
 interface ResumeTemplate6Props {
   data: ResumeData;
@@ -11,20 +11,20 @@ interface ResumeTemplate6Props {
 export default function ResumeTemplate6({ data }: ResumeTemplate6Props) {
   const { personalInfo, workExperience, education, skills, projects, additionalSections } = data;
 
-  // Helper to render section with pink header
+  // Helper to render section with pink header and underline
   const Section = ({ 
-    icon: Icon, 
     title, 
-    children 
+    children,
+    icon: Icon
   }: { 
-    icon: React.ComponentType<{ className?: string }>;
     title: string;
     children: React.ReactNode;
+    icon?: React.ComponentType<{ className?: string }>;
   }) => (
     <section className="mb-6">
       <div className="flex items-center mb-3">
-        <Icon className="h-5 w-5 text-pink-500 mr-2" />
-        <h2 className="text-xl font-bold text-pink-600 border-b-2 border-pink-200 pb-1">{title}</h2>
+        {Icon && <Icon className="h-5 w-5 text-pink-500 mr-2" />}
+        <h2 className="text-xl font-bold text-pink-600 pb-1 border-b-2 border-pink-300">{title}</h2>
       </div>
       {children}
     </section>
@@ -32,47 +32,50 @@ export default function ResumeTemplate6({ data }: ResumeTemplate6Props) {
 
   return (
     <div className="bg-white min-h-[1100px] text-gray-800 font-sans p-6 md:p-8 max-w-4xl mx-auto">
-      {/* Header: Name + Contact (minimalist, centered on mobile) */}
-      <header className="mb-8 text-center md:text-left">
-        <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-2">
+      {/* Header: Name + Contact */}
+      <header className="mb-8">
+        <h1 className="text-3xl md:text-4xl font-bold text-pink-600 mb-1">
           {personalInfo?.fullName || "Your Name"}
         </h1>
         <p className="text-lg text-gray-600 italic mb-4">
-          {personalInfo?.jobTitle || "Data Analyst | Business Intelligence"}
+          {personalInfo?.jobTitle || "Senior Data Analyst"}
         </p>
 
-        <div className="flex flex-wrap justify-center md:justify-start gap-4 text-sm text-gray-600">
-          {personalInfo?.email && (
-            <div className="flex items-center">
-              <Mail className="h-4 w-4 mr-1 text-pink-500" />
-              <span>{personalInfo.email}</span>
-            </div>
-          )}
-          {personalInfo?.phone && (
-            <div className="flex items-center">
-              <Phone className="h-4 w-4 mr-1 text-pink-500" />
-              <span>{personalInfo.phone}</span>
-            </div>
-          )}
-          {personalInfo?.location && (
-            <div className="flex items-center">
-              <MapPin className="h-4 w-4 mr-1 text-pink-500" />
-              <span>{personalInfo.location}</span>
-            </div>
-          )}
+        {/* Contact Info - Right Aligned on Desktop */}
+        <div className="flex flex-wrap justify-between md:justify-end gap-4 text-sm text-gray-600">
+          <div className="flex flex-col md:flex-row md:items-center gap-4">
+            {personalInfo?.email && (
+              <div className="flex items-center">
+                <Mail className="h-4 w-4 mr-1 text-pink-500" />
+                <span>{personalInfo.email}</span>
+              </div>
+            )}
+            {personalInfo?.phone && (
+              <div className="flex items-center">
+                <Phone className="h-4 w-4 mr-1 text-pink-500" />
+                <span>{personalInfo.phone}</span>
+              </div>
+            )}
+            {personalInfo?.location && (
+              <div className="flex items-center">
+                <MapPin className="h-4 w-4 mr-1 text-pink-500" />
+                <span>{personalInfo.location}</span>
+              </div>
+            )}
+          </div>
         </div>
       </header>
 
       {/* Summary */}
       {personalInfo?.summary && (
-        <Section icon={Trophy} title="Professional Summary">
+        <Section title="SUMMARY">
           <p className="leading-relaxed text-gray-700">{personalInfo.summary}</p>
         </Section>
       )}
 
       {/* Experience */}
       {workExperience && workExperience.length > 0 && (
-        <Section icon={Briefcase} title="Work Experience">
+        <Section title="EXPERIENCE">
           <div className="space-y-5">
             {workExperience.map((job, index) => (
               <div key={index} className="pl-4 border-l-2 border-pink-200">
@@ -102,7 +105,7 @@ export default function ResumeTemplate6({ data }: ResumeTemplate6Props) {
 
       {/* Education */}
       {education && education.length > 0 && (
-        <Section icon={GraduationCap} title="Education">
+        <Section title="EDUCATION">
           <div className="space-y-4">
             {education.map((edu, index) => (
               <div key={index} className="pl-4 border-l-2 border-pink-200">
@@ -126,15 +129,13 @@ export default function ResumeTemplate6({ data }: ResumeTemplate6Props) {
 
       {/* Skills */}
       {skills && skills.length > 0 && (
-        <Section icon={Code} title="Technical Skills">
-          <div className="flex flex-wrap gap-2">
+        <Section title="SKILLS">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             {skills.map((skill, index) => (
-              <span
-                key={index}
-                className="px-3 py-1.5 bg-pink-100 text-pink-700 rounded-full text-sm font-medium"
-              >
-                {skill}
-              </span>
+              <div key={index} className="flex items-center">
+                <span className="w-2 h-2 bg-pink-600 rounded-full mr-3"></span>
+                <span className="text-gray-700">{skill}</span>
+              </div>
             ))}
           </div>
         </Section>
@@ -142,7 +143,7 @@ export default function ResumeTemplate6({ data }: ResumeTemplate6Props) {
 
       {/* Projects */}
       {projects && projects.length > 0 && (
-        <Section icon={BookOpen} title="Projects">
+        <Section title="PROJECTS">
           <div className="space-y-5">
             {projects.map((project, index) => (
               <div key={index} className="pl-4 border-l-2 border-pink-200">
@@ -181,27 +182,11 @@ export default function ResumeTemplate6({ data }: ResumeTemplate6Props) {
         </Section>
       )}
 
-      {/* Languages & Certifications */}
+      {/* Additional Sections */}
       {additionalSections && (
         <>
-          {additionalSections.some(sec => sec.type === 'languages') && (
-            <Section icon={Languages} title="Languages">
-              <div className="space-y-2">
-                {additionalSections
-                  .filter(sec => sec.type === 'languages')
-                  .flatMap(sec => sec.items || [])
-                  .map((item, i) => (
-                    <div key={i} className="flex justify-between items-center">
-                      <span className="font-medium text-gray-900">{item.title}</span>
-                      <span className="text-gray-600">{item.content}</span>
-                    </div>
-                  ))}
-              </div>
-            </Section>
-          )}
-
           {additionalSections.some(sec => sec.type === 'certifications') && (
-            <Section icon={Award} title="Certifications">
+            <Section title="CERTIFICATION">
               <div className="space-y-3">
                 {additionalSections
                   .filter(sec => sec.type === 'certifications')
@@ -210,6 +195,22 @@ export default function ResumeTemplate6({ data }: ResumeTemplate6Props) {
                     <div key={i}>
                       <h4 className="font-bold text-gray-900">{item.title}</h4>
                       <p className="text-gray-600">{item.content}</p>
+                    </div>
+                  ))}
+              </div>
+            </Section>
+          )}
+
+          {additionalSections.some(sec => sec.type === 'languages') && (
+            <Section title="LANGUAGES">
+              <div className="space-y-2">
+                {additionalSections
+                  .filter(sec => sec.type === 'languages')
+                  .flatMap(sec => sec.items || [])
+                  .map((item, i) => (
+                    <div key={i} className="flex justify-between items-center">
+                      <span className="font-medium text-gray-900">{item.title}</span>
+                      <span className="text-gray-600">{item.content}</span>
                     </div>
                   ))}
               </div>

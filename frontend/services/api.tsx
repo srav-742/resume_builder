@@ -1,228 +1,201 @@
-// frontend/services/api.tsx
-import type { ResumeData } from "@/context/resume-context"
-import { getAuth } from "firebase/auth"
+// services/api.tsx
+import type { ResumeData } from "@/context/resume-context";
+import { auth } from "@/lib/firebase";
+import { getIdToken } from "firebase/auth";
 
-// ✅ Use backend URL from .env.local
-const API_URL = `${process.env.NEXT_PUBLIC_BACKEND_URL}/api`
-
-// Get resume data from the server (public - used only for demo)
-export async function getResume(): Promise<ResumeData | null> {
-  try {
-    const response = await fetch(`${API_URL}/resume`, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      cache: "no-store",
-    })
-
-    if (!response.ok) {
-      throw new Error("Failed to fetch resume data")
-    }
-
-    return await response.json()
-  } catch (error) {
-    console.error("Error fetching resume data:", error)
-    return {}
-  }
+// Ensure backend URL is defined
+const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
+if (!BACKEND_URL) {
+  throw new Error("NEXT_PUBLIC_BACKEND_URL is not defined in .env.local");
 }
+const API_URL = `${BACKEND_URL}/api`;
 
-// ✅ Get resume data for the CURRENT USER (protected)
+/**
+ * Get a fresh Firebase ID token.
+ * Forces refresh to avoid using expired or uninitialized token.
+ */
+const getAuthToken = async (): Promise<string | null> => {
+  const user = auth.currentUser;
+  if (!user) {
+    console.warn("No Firebase user found");
+    return null;
+  }
+  try {
+    // Force refresh to ensure token is valid
+    const token = await getIdToken(user, true);
+    return token;
+  } catch (error) {
+    console.error("Failed to get ID token:", error);
+    return null;
+  }
+};
+
+// Get authenticated user's resume
 export async function getUserResume(): Promise<ResumeData | null> {
-  try {
-    const auth = getAuth()
-    const currentUser = auth.currentUser
-
-    if (!currentUser) {
-      return null
-    }
-
-    const token = await currentUser.getIdToken()
-
-    const response = await fetch(`${API_URL}/user/resumes`, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${token}`,
-      },
-      cache: "no-store",
-    })
-
-    if (!response.ok) {
-      throw new Error("Failed to fetch user resume")
-    }
-
-    const { resumes } = await response.json()
-    return resumes[0] || {}
-  } catch (error) {
-    console.error("Error fetching user resume:", error)
-    return {}
+  const token = await getAuthToken();
+  if (!token) {
+    console.warn("Skipping getUserResume: no auth token");
+    return null;
   }
+
+  const response = await fetch(`${API_URL}/resume`, {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    cache: "no-store",
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    console.error("getUserResume failed:", response.status, errorText);
+    throw new Error("Failed to fetch user resume");
+  }
+
+  const data = await response.json();
+  return data.resumes?.[0] || {};
 }
 
-// Save resume data to the server
+// Save or update resume
 export async function saveResume(data: ResumeData): Promise<ResumeData> {
-  try {
-    const auth = getAuth()
-    const currentUser = auth.currentUser
-
-    if (!currentUser) {
-      throw new Error("User not authenticated")
-    }
-
-    const token = await currentUser.getIdToken()
-
-    const response = await fetch(`${API_URL}/user/resumes`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${token}`,
-      },
-      body: JSON.stringify(data),
-    })
-
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}))
-      throw new Error(errorData.error || "Failed to save resume data")
-    }
-
-    return await response.json()
-  } catch (error) {
-    console.error("Error saving resume data:", error)
-    return data
+  const token = await getAuthToken();
+  if (!token) {
+    throw new Error("User not authenticated");
   }
+
+  const response = await fetch(`${API_URL}/resume`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(data),
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    const message = errorData.error || "Failed to save resume data";
+    console.error("saveResume failed:", message);
+    throw new Error(message);
+  }
+
+  const result = await response.json();
+  return result.resume || data;
 }
 
-// ✅ NEW: Update a specific resume by ID (for explicit edits with resume._id)
+// Update specific resume by ID
 export async function updateResumeById(id: string, data: ResumeData): Promise<ResumeData> {
-  try {
-    const auth = getAuth()
-    const currentUser = auth.currentUser
-
-    if (!currentUser) {
-      throw new Error("User not authenticated")
-    }
-
-    const token = await currentUser.getIdToken()
-
-    const response = await fetch(`${API_URL}/resumes/${id}`, {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${token}`,
-      },
-      body: JSON.stringify(data),
-    })
-
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}))
-      throw new Error(errorData.error || "Failed to update resume")
-    }
-
-    return await response.json()
-  } catch (error) {
-    console.error("Error updating resume by ID:", error)
-    throw error
+  const token = await getAuthToken();
+  if (!token) {
+    throw new Error("User not authenticated");
   }
+
+  const response = await fetch(`${API_URL}/resume/${id}`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(data),
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.error || "Failed to update resume");
+  }
+
+  const result = await response.json();
+  return result.resume;
 }
 
-// ✅ NEW: Delete a specific resume by ID
+// Delete resume by ID
 export async function deleteResumeById(id: string): Promise<void> {
-  try {
-    const auth = getAuth()
-    const currentUser = auth.currentUser
+  const token = await getAuthToken();
+  if (!token) {
+    throw new Error("User not authenticated");
+  }
 
-    if (!currentUser) {
-      throw new Error("User not authenticated")
-    }
+  const response = await fetch(`${API_URL}/resume/${id}`, {
+    method: "DELETE",
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
 
-    const token = await currentUser.getIdToken()
-
-    const response = await fetch(`${API_URL}/resumes/${id}`, {
-      method: "DELETE",
-      headers: {
-        "Authorization": `Bearer ${token}`,
-      },
-    })
-
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}))
-      throw new Error(errorData.error || "Failed to delete resume")
-    }
-  } catch (error) {
-    console.error("Error deleting resume by ID:", error)
-    throw error
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.error || "Failed to delete resume");
   }
 }
 
-// Analyze resume against job description
+// Public functions (no auth needed)
+
+export async function getResume(): Promise<ResumeData | null> {
+  const response = await fetch(`${API_URL}/resume`, {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    cache: "no-store",
+  });
+
+  if (!response.ok) {
+    throw new Error("Failed to fetch resume data");
+  }
+
+  return response.json();
+}
+
 export async function analyzeResume(
   resumeData: ResumeData,
-  jobDescription: string,
+  jobDescription: string
 ): Promise<{
-  score: number
-  matchedKeywords: string[]
-  missingKeywords: string[]
-  recommendations: string[]
+  score: number;
+  matchedKeywords: string[];
+  missingKeywords: string[];
+  recommendations: string[];
 }> {
-  try {
-    const response = await fetch(`${API_URL}/analyze`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        resume: resumeData,
-        jobDescription,
-      }),
-    })
+  const response = await fetch(`${API_URL}/analyze`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      resume: resumeData,
+      jobDescription,
+    }),
+  });
 
-    if (!response.ok) {
-      throw new Error("Failed to analyze resume")
-    }
-
-    return await response.json()
-  } catch (error) {
-    console.error("Error analyzing resume:", error)
-    return {
-      score: 75,
-      matchedKeywords: ["React", "JavaScript", "Node.js"],
-      missingKeywords: ["Docker", "AWS"],
-      recommendations: [
-        "Add Docker to your skills if you have experience with it",
-        "Include AWS in your technical skills if applicable",
-        "Quantify your achievements with more specific metrics",
-      ],
-    }
+  if (!response.ok) {
+    throw new Error("Failed to analyze resume");
   }
+
+  return response.json();
 }
 
-// Download resume as PDF
 export async function downloadResume(resumeData: ResumeData): Promise<void> {
-  try {
-    const response = await fetch(`${API_URL}/download`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(resumeData),
-    })
+  const response = await fetch(`${API_URL}/download`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(resumeData),
+  });
 
-    if (!response.ok) {
-      throw new Error("Failed to generate PDF")
-    }
-
-    const blob = await response.blob()
-    const url = window.URL.createObjectURL(blob)
-    const a = document.createElement("a")
-    a.href = url
-    a.download = `${resumeData.personalInfo?.fullName || "resume"}.pdf`.replace(/\s+/g, "_").toLowerCase()
-    document.body.appendChild(a)
-    a.click()
-    window.URL.revokeObjectURL(url)
-    a.remove()
-  } catch (error) {
-    console.error("Error downloading resume:", error)
-    throw error
+  if (!response.ok) {
+    throw new Error("Failed to generate PDF");
   }
+
+  const blob = await response.blob();
+  const url = window.URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `${resumeData.personalInfo?.fullName || "resume"}.pdf`
+    .replace(/\s+/g, "_")
+    .toLowerCase();
+  document.body.appendChild(a);
+  a.click();
+  window.URL.revokeObjectURL(url);
+  a.remove();
 }

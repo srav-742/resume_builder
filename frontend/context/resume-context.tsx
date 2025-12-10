@@ -1,9 +1,10 @@
-// frontend/context/ResumeContext.tsx
-"use client";
+'use client';
 
 import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
-import { auth, onAuthStateChanged, type User } from "@/lib/firebase";
+// ✅ FIXED: onAuthStateChanged comes from 'firebase/auth', NOT your lib
+import { auth, type User } from "@/lib/firebase";
+import { onAuthStateChanged } from "firebase/auth"; // ✅ Correct import
 import { getUserResume } from "@/services/api";
 import { getFurthestStep } from "@/lib/getFurthestStep";
 
@@ -15,6 +16,9 @@ export type ResumeData = {
     email: string;
     phone: string;
     location: string;
+    gender?: string;
+    dateOfBirth?: string;
+    address?: string;
     profilePicture?: string;
     summary: string;
   };
@@ -74,42 +78,36 @@ export function ResumeProvider({ children }: { children: ReactNode }) {
   const [isInitialRedirectDone, setIsInitialRedirectDone] = useState(false);
 
   useEffect(() => {
+    if (typeof window === 'undefined') {
+      setIsLoading(false);
+      return;
+    }
+
+    const saved = localStorage.getItem('resumeData');
+    if (saved) {
+      try {
+        setResumeData(JSON.parse(saved));
+      } catch (e) {
+        setResumeData({});
+      }
+    }
+
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       setUser(firebaseUser);
 
       if (firebaseUser) {
         try {
           const resume = await getUserResume();
-          const finalData = resume || {};
-          setResumeData(finalData);
-          if (typeof window !== "undefined") {
-            localStorage.setItem("resumeData", JSON.stringify(finalData));
+          if (resume && Object.keys(resume).length > 0) {
+            setResumeData(resume);
+            localStorage.setItem('resumeData', JSON.stringify(resume));
           }
         } catch (error) {
-          console.error("Failed to load user resume:", error);
-          setResumeData({});
-          if (typeof window !== "undefined") {
-            localStorage.setItem("resumeData", JSON.stringify({}));
-          }
+          console.error('Failed to load user resume:', error);
         }
       } else {
-        try {
-          if (typeof window !== "undefined") {
-            const saved = localStorage.getItem("resumeData");
-            setResumeData(saved ? JSON.parse(saved) : {});
-          } else {
-            setResumeData({});
-          }
-        } catch (e) {
-          setResumeData({});
-        }
-
-        // ✅ Redirect to login only on client and only if on /builder
-        if (
-          typeof window !== "undefined" &&
-          window.location.pathname.startsWith("/builder")
-        ) {
-          window.location.href = "/login";
+        if (window.location.pathname.startsWith('/builder')) {
+          window.location.href = '/login';
         }
       }
       setIsLoading(false);
@@ -118,25 +116,32 @@ export function ResumeProvider({ children }: { children: ReactNode }) {
     return () => unsubscribe();
   }, []);
 
-  // Redirect authenticated users to their furthest step
   useEffect(() => {
     if (
-      typeof window !== "undefined" &&
+      typeof window !== 'undefined' &&
       !isLoading &&
       resumeData &&
       !isInitialRedirectDone &&
       user
     ) {
-      const nextStep = getFurthestStep(resumeData);
-      router.replace(`/builder/${nextStep}`);
-      setIsInitialRedirectDone(true);
+      const currentPath = window.location.pathname;
+      const isProfileOrFixedRoute =
+        currentPath === '/profile' ||
+        currentPath.startsWith('/profile/') ||
+        currentPath === '/dashboard' ||
+        currentPath === '/settings';
+
+      if (!isProfileOrFixedRoute) {
+        const nextStep = getFurthestStep(resumeData);
+        router.replace(`/builder/${nextStep}`);
+        setIsInitialRedirectDone(true);
+      }
     }
   }, [resumeData, isLoading, isInitialRedirectDone, user, router]);
 
-  // Persist resume data to localStorage on client
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      localStorage.setItem("resumeData", JSON.stringify(resumeData));
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('resumeData', JSON.stringify(resumeData));
     }
   }, [resumeData]);
 
@@ -144,12 +149,8 @@ export function ResumeProvider({ children }: { children: ReactNode }) {
     setResumeData(data);
   }
 
-  // ✅ Stabilize updateSection with useCallback to prevent infinite loop
   const updateSection = useCallback(<K extends keyof ResumeData>(section: K, value: ResumeData[K]) => {
-    setResumeData(prev => ({
-      ...prev,
-      [section]: value
-    }));
+    setResumeData(prev => ({ ...prev, [section]: value }));
   }, []);
 
   return (
@@ -162,7 +163,7 @@ export function ResumeProvider({ children }: { children: ReactNode }) {
 export function useResume() {
   const context = useContext(ResumeContext);
   if (context === undefined) {
-    throw new Error("useResume must be used within a ResumeProvider");
+    throw new Error('useResume must be used within a ResumeProvider');
   }
   return context;
 }

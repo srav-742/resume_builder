@@ -1,6 +1,7 @@
-// frontend/lib/firebase.ts
-import { initializeApp, getApps, getApp } from 'firebase/app';
-import { getAuth, onAuthStateChanged } from 'firebase/auth';
+// lib/firebase.ts
+import { initializeApp } from 'firebase/app';
+import { getAuth } from 'firebase/auth';
+import { getFirestore } from 'firebase/firestore';
 
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -11,8 +12,16 @@ const firebaseConfig = {
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
 };
 
-// Prevent re-initializing Firebase in development (Next.js hot reload)
-const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
+const app = initializeApp(firebaseConfig);
 
+// ✅ Export the auth INSTANCE, not the function
 export const auth = getAuth(app);
-export { onAuthStateChanged }; // ✅ ADD THIS LINE
+export const db = getFirestore(app);
+
+// ✅ Expose for debugging in development
+if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
+  (window as any).FIREBASE_AUTH = auth;
+}
+
+// ❌ DO NOT export getAuth unless absolutely necessary
+// We’ll avoid it entirely.

@@ -19,43 +19,42 @@ export default function TemplatesPage() {
   const [selectedTemplate, setSelectedTemplate] = useState<string>(resumeData.template || "template1");
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
-  // ✅ ADDED template6 — matches your image (pink headings, single column)
+  // ✅ UPDATED template4 image path to match your actual file
   const templates = [
     {
       id: "template1",
       name: "Professional",
-      image: "/placeholder.svg?height=400&width=300",
+      image: "images/templates/Professional.png", // ✅ Keep if this image exists
       description: "Clean and professional design suitable for most industries",
     },
     {
       id: "template2",
       name: "Modern",
-      image: "/placeholder.svg?height=400&width=300",
+      image: "images/templates/Modern.png", // ✅ Keep if this image exists
       description: "Contemporary layout with a creative touch",
     },
     {
       id: "template3",
       name: "Minimal",
-      image: "/placeholder.svg?height=400&width=300",
+      image: "images/templates/Minimal.png", // ✅ Keep if this image exists
       description: "Simple and elegant design focusing on content",
     },
     {
       id: "template4",
       name: "Web Designer",
-      image: "/placeholder.svg?height=400&width=300",
+      image: "/images/templates/web-designer.png", // ✅ FIXED: Points to your actual image file
       description: "Clean, single-column layout optimized for web designers and creatives",
     },
     {
       id: "template5",
       name: "Professional Profile",
-      image: "/placeholder.svg?height=400&width=300",
+      image: "images/templates/SoftwareDeveloper.png", // ✅ Keep if this image exists
       description: "Clean design with profile photo and two-column skills",
     },
-    // ✅ NEW TEMPLATE 6 — Pink headings, single column, data analyst style
     {
       id: "template6",
       name: "Data Analyst",
-      image: "/placeholder.svg?height=400&width=300", // Replace with real image later
+      image: "images/templates/DataAnalyst.png", // ✅ Keep if this image exists
       description: "Minimalist single-column layout with pink headings — perfect for data analysts and professionals.",
     },
   ];
@@ -70,13 +69,9 @@ export default function TemplatesPage() {
         template: templateId,
       };
 
-      // ✅ Update local state FIRST (saves to localStorage)
       updateResumeData(updatedData);
-
-      // ✅ NAVIGATE IMMEDIATELY — don't wait for backend
       router.push(`/builder/personal-info`);
 
-      // Save to backend in background
       await saveResume(updatedData);
 
       toast({
@@ -90,7 +85,6 @@ export default function TemplatesPage() {
         title: "Error",
         description: "Failed to save template selection. Please try again.",
       });
-      // Navigation already happened — user is not blocked
     } finally {
       setIsLoading(false);
     }
@@ -106,7 +100,6 @@ export default function TemplatesPage() {
             <p className="text-muted-foreground">Select a template to get started with your resume</p>
           </div>
 
-          {/* ✅ Grid now shows 4 cards per row */}
           <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-8">
             {templates.map((template) => (
               <Card

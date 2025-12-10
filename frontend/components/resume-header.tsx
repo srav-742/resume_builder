@@ -3,7 +3,7 @@
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
-import { FileText, LogOut } from "lucide-react"
+import { FileText, LogOut, User } from "lucide-react"
 import { signOut } from "firebase/auth"
 import { auth } from "@/lib/firebase"
 import { Button } from "@/components/ui/button"
@@ -37,7 +37,6 @@ export function ResumeHeader({ currentStep }: { currentStep: string }) {
     try {
       await signOut(auth)
       localStorage.removeItem('resumeData')
-      // ✅ Full page reload to avoid React hook errors
       window.location.href = '/login'
     } catch (error) {
       console.error("Logout failed", error)
@@ -54,10 +53,25 @@ export function ResumeHeader({ currentStep }: { currentStep: string }) {
           </Link>
 
           {user ? (
-            <Button variant="ghost" size="sm" onClick={handleLogout} className="flex items-center gap-1">
-              <LogOut className="h-4 w-4" />
-              <span className="text-sm">Logout</span>
-            </Button>
+            <div className="flex items-center gap-4"> {/* ✅ Increased gap for spacing */}
+              {/* ➤ Enhanced Profile Icon — Highlighted, Circular, with Label */}
+              <Link href="/profile" className="flex flex-col items-center group">
+                <div className="relative">
+                  <div className="w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center group-hover:bg-blue-600 transition-colors">
+                    <User className="h-5 w-5 text-white" />
+                  </div>
+                </div>
+                <span className="mt-1 text-xs text-gray-600 group-hover:text-gray-900 font-medium">
+                  User Profile
+                </span>
+              </Link>
+
+              {/* ➤ Logout Button — Unchanged */}
+              <Button variant="ghost" size="sm" onClick={handleLogout} className="flex items-center gap-1">
+                <LogOut className="h-4 w-4" />
+                <span className="text-sm">Logout</span>
+              </Button>
+            </div>
           ) : (
             <div className="text-sm text-muted-foreground">
               <span className="mr-2">Save Progress</span>

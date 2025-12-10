@@ -10,6 +10,9 @@ import { ResumeHeader } from "@/components/resume-header";
 import ResumeTemplate1 from "@/components/resume-templates/template1";
 import ResumeTemplate2 from "@/components/resume-templates/template2";
 import ResumeTemplate3 from "@/components/resume-templates/template3";
+import ResumeTemplate4 from "@/components/resume-templates/template4"; // ✅ ADD THIS
+import ResumeTemplate5 from "@/components/resume-templates/template5"; 
+import ResumeTemplate6 from "@/components/resume-templates/template6"; 
 import { ArrowLeft } from "lucide-react";
 import { ThemeProviderWrapper } from "@/components/theme-provider-wrapper";
 import { PdfDownloadButton } from "@/components/pdf-download-button";
@@ -24,7 +27,6 @@ export function PreviewClient({ from }: { from: string }) {
     setHasMounted(true);
   }, []);
 
-  // Handle client-only hydration
   if (!hasMounted) {
     return <FormSkeleton />;
   }
@@ -37,7 +39,7 @@ export function PreviewClient({ from }: { from: string }) {
     router.push(`/builder/${from}`);
   };
 
-  function renderTemplate(): JSX.Element {
+  function renderTemplate() {
     switch (resumeData.template) {
       case "template1":
         return <ResumeTemplate1 data={resumeData} />;
@@ -45,6 +47,12 @@ export function PreviewClient({ from }: { from: string }) {
         return <ResumeTemplate2 data={resumeData} />;
       case "template3":
         return <ResumeTemplate3 data={resumeData} />;
+      case "template4": // ✅ ADD THIS CASE
+        return <ResumeTemplate4 data={resumeData} />;
+      case "template5": // ✅ ADD THIS CASE
+        return <ResumeTemplate5 data={resumeData} />;
+      case "template6": // ✅ ADD THIS CASE
+        return <ResumeTemplate6 data={resumeData} />;
       default:
         return <ResumeTemplate1 data={resumeData} />;
     }
@@ -52,30 +60,40 @@ export function PreviewClient({ from }: { from: string }) {
 
   return (
     <ThemeProviderWrapper>
-      <div className="min-h-screen flex flex-col">
+      <div className="min-h-screen flex flex-col bg-blue-50">
         <ResumeHeader currentStep="preview" />
-        <main className="flex-1 container max-w-6xl mx-auto p-6">
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
-            <div>
-              <h1 className="text-3xl font-bold mb-2">Resume Preview</h1>
-              <p className="text-muted-foreground">
-                Review your resume before downloading
-              </p>
-            </div>
-            <div className="flex gap-3">
-              <Button variant="outline" onClick={handleBackToEditor}>
-                <ArrowLeft className="mr-2 h-4 w-4" />
-                Back to Editor
-              </Button>
-              <PdfDownloadButton />
+        <main className="flex-1 w-full px-4 py-6 md:px-6">
+          <div className="max-w-6xl mx-auto mb-6 md:mb-8">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+              <div>
+                <h1 className="text-2xl md:text-3xl font-bold">Resume Preview</h1>
+                <p className="text-muted-foreground">
+                  Review your resume before downloading
+                </p>
+              </div>
+              <div className="flex gap-3 w-full md:w-auto">
+                <Button
+                  variant="outline"
+                  onClick={handleBackToEditor}
+                  className="w-full md:w-auto"
+                >
+                  <ArrowLeft className="mr-2 h-4 w-4" />
+                  Back to Editor
+                </Button>
+                <PdfDownloadButton className="w-full md:w-auto" />
+              </div>
             </div>
           </div>
 
-          <Card className="p-0 shadow-lg print:shadow-none overflow-hidden">
-            <div className="w-[8.5in] mx-auto bg-white" id="resume-content">
-              {renderTemplate()}
-            </div>
-          </Card>
+          <div className="max-w-6xl mx-auto">
+            <Card className="overflow-hidden shadow-lg border">
+              <div className="p-4 md:p-6 bg-white">
+                <div id="resume-content" className="mx-auto">
+                  {renderTemplate()}
+                </div>
+              </div>
+            </Card>
+          </div>
         </main>
       </div>
     </ThemeProviderWrapper>
