@@ -10,7 +10,7 @@ const personalInfoSchema = new mongoose.Schema({
   summary: { type: String, default: '' },
   gender: { 
     type: String, 
-    enum: ['male', 'female', 'other', ''], // ✅ CHANGED TO LOWERCASE
+    enum: ['male', 'female', 'other', 'prefer-not-to-say', ''], 
     default: '' 
   },
   dateOfBirth: { type: String, default: '' }, // YYYY-MM-DD
@@ -24,7 +24,7 @@ const educationSchema = new mongoose.Schema({
   location: { type: String, default: '' },
   degree: { type: String, default: '' },
   fieldOfStudy: { type: String, default: '' },
-  startDate: { type: String, default: '' }, // YYYY-MM or YYYY-MM-DD
+  startDate: { type: String, default: '' },
   endDate: { type: String, default: '' },
   description: { type: String, default: '' },
 }, { _id: false });
@@ -73,9 +73,10 @@ const resumeSchema = new mongoose.Schema({
     required: true,
     index: true
   },
+  // Stores "template1", "template6", etc.
   template: {
     type: String,
-    default: 'modern'
+    default: 'template1' 
   },
   personalInfo: {
     type: personalInfoSchema,
@@ -102,7 +103,7 @@ const resumeSchema = new mongoose.Schema({
     default: []
   }
 }, {
-  timestamps: true // Adds createdAt and updatedAt
+  timestamps: true 
 });
 
 module.exports = mongoose.model('Resume', resumeSchema);
