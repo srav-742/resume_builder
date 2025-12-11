@@ -39,7 +39,14 @@ const userSchema = new mongoose.Schema({
   dateOfBirth: { type: Date }, // stored as ISO Date
   address: { type: String },
   profilePicture: { type: String }, // base64 or URL
-  summary: { type: String }
+  summary: { type: String },
+  
+  // ✅ ADDED: selectedTemplate field for resume template persistence
+  selectedTemplate: {
+    type: String,
+    enum: ['template1', 'template2', 'template3', 'template4', 'template5', 'template6'],
+    default: 'template6'
+  }
 }, {
   timestamps: true
 });
