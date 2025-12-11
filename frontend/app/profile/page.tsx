@@ -1,12 +1,40 @@
-// app/profile/page.tsx
-
 'use client';
 
 import { useEffect, useState } from 'react';
 import { getAuth } from 'firebase/auth';
 import { useRouter } from 'next/navigation';
 
+// ✅ Import ALL your templates
+import ResumeTemplate1 from '@/components/resume-templates/template1';
+import ResumeTemplate2 from '@/components/resume-templates/template2';
+import ResumeTemplate3 from '@/components/resume-templates/template3';
+import ResumeTemplate4 from '@/components/resume-templates/template4';
+import ResumeTemplate5 from '@/components/resume-templates/template5';
+import ResumeTemplate6 from '@/components/resume-templates/template6';
+
+// Types
+interface ResumeData {
+  personalInfo: any;
+  workExperience: any[];
+  education: any[];
+  skills: string[];
+  projects: any[];
+  additionalSections: any[];
+}
+
+interface SavedResume {
+  _id: string;
+  template: string; // e.g., "template1"
+  personalInfo: any;
+  workExperience: any[];
+  education: any[];
+  skills: string[];
+  projects: any[];
+  additionalSections: any[];
+}
+
 export default function ProfilePage() {
+  // ✅ Keep your existing profile form state (unchanged)
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -16,18 +44,20 @@ export default function ProfilePage() {
     gender: '',
     profilePicture: '',
   });
+
+  // ✅ NEW: State for ALL saved resumes
+  const [savedResumes, setSavedResumes] = useState<SavedResume[]>([]);
+
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
 
   const router = useRouter();
   const auth = getAuth();
-
-  // Use the backend URL from .env.local
   const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000';
 
   useEffect(() => {
-    const fetchUserProfile = async () => {
+    const fetchAllData = async () => {
       const user = auth.currentUser;
       if (!user) {
         router.push('/login');
@@ -37,36 +67,41 @@ export default function ProfilePage() {
       try {
         const idToken = await user.getIdToken();
 
-        const response = await fetch(`${BACKEND_URL}/api/profile`, {
-          headers: {
-            'Authorization': `Bearer ${idToken}`,
-          },
+        // ✅ 1. Fetch basic profile (unchanged)
+        const profileRes = await fetch(`${BACKEND_URL}/api/profile`, {
+          headers: { 'Authorization': `Bearer ${idToken}` },
         });
-
-        if (!response.ok) {
-          const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
-          throw new Error(errorData.error || `HTTP ${response.status}`);
-        }
-
-        const data = await response.json();
+        if (!profileRes.ok) throw new Error('Failed to load profile');
+        const profileData = await profileRes.json();
         setFormData({
-          name: data.name,
-          email: data.email,
-          dateOfBirth: data.dateOfBirth || '',
-          mobile: data.mobile || '',
-          address: data.address || '',
-          gender: data.gender || '',
-          profilePicture: data.profilePicture || '',
+          name: profileData.name,
+          email: profileData.email,
+          dateOfBirth: profileData.dateOfBirth || '',
+          mobile: profileData.mobile || '',
+          address: profileData.address || '',
+          gender: profileData.gender || '',
+          profilePicture: profileData.profilePicture || '',
         });
+
+        // ✅ 2. Fetch ALL saved resumes (NEW)
+        const resumesRes = await fetch(`${BACKEND_URL}/api/resume`, {
+          headers: { 'Authorization': `Bearer ${idToken}` },
+        });
+        if (!resumesRes.ok) throw new Error('Failed to load resumes');
+        const { resumes } = await resumesRes.json();
+        setSavedResumes(resumes || []);
+
       } catch (err: any) {
-        setError(err.message || 'Failed to load profile');
+        setError(err.message || 'Failed to load data');
       } finally {
         setLoading(false);
       }
     };
 
-    fetchUserProfile();
+    fetchAllData();
   }, [auth, router]);
+
+  // ✅ Keep your existing handlers (handleChange, handleImageUpload, handleSubmit) — no changes needed below
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -130,6 +165,16 @@ export default function ProfilePage() {
     );
   }
 
+  // ✅ Template mapping for previews
+  const templateMap: Record<string, React.ComponentType<{ data: ResumeData }>> = {
+    template1: ResumeTemplate1,
+    template2: ResumeTemplate2,
+    template3: ResumeTemplate3,
+    template4: ResumeTemplate4,
+    template5: ResumeTemplate5,
+    template6: ResumeTemplate6,
+  };
+
   return (
     <div className="max-w-4xl mx-auto p-6 bg-white shadow-md rounded-lg">
       <h1 className="text-2xl font-bold mb-6 text-gray-800">User Profile</h1>
@@ -146,8 +191,8 @@ export default function ProfilePage() {
         </div>
       )}
 
+      {/* 📝 Keep your existing profile form */}
       <form onSubmit={handleSubmit} className="space-y-6">
-        {/* Name & Email (read-only) */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
             <label className="block text-sm font-medium text-gray-700">Full Name</label>
@@ -169,7 +214,6 @@ export default function ProfilePage() {
           </div>
         </div>
 
-        {/* Editable Fields */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
             <label className="block text-sm font-medium text-gray-700">Date of Birth</label>
@@ -220,7 +264,6 @@ export default function ProfilePage() {
           </select>
         </div>
 
-        {/* Profile Picture */}
         <div>
           <label className="block text-sm font-medium text-gray-700">Profile Picture</label>
           {formData.profilePicture && (
@@ -249,6 +292,44 @@ export default function ProfilePage() {
           </button>
         </div>
       </form>
+
+      {/* ✅ NEW SECTION: Show ALL saved resume previews */}
+      <div className="mt-10 pt-6 border-t">
+        <h2 className="text-xl font-semibold text-gray-800 mb-4">
+          Your Saved Resumes ({savedResumes.length})
+        </h2>
+
+        {savedResumes.length === 0 ? (
+          <p className="text-gray-500">No resumes saved yet. Create one in the editor!</p>
+        ) : (
+          <div className="space-y-8">
+            {savedResumes.map((resume) => {
+              const TemplateComp = templateMap[resume.template];
+              if (!TemplateComp) return null;
+
+              const resumeDataForTemplate: ResumeData = {
+                personalInfo: resume.personalInfo,
+                workExperience: resume.workExperience || [],
+                education: resume.education || [],
+                skills: resume.skills || [],
+                projects: resume.projects || [],
+                additionalSections: resume.additionalSections || [],
+              };
+
+              return (
+                <div key={resume._id} className="border rounded-lg p-4 bg-white">
+                  <h3 className="text-lg font-medium text-gray-700 mb-2">
+                    {resume.template.charAt(0).toUpperCase() + resume.template.slice(1).replace('template', 'Template ')}
+                  </h3>
+                  <div className="overflow-auto max-h-[900px] border rounded bg-white p-4">
+                    <TemplateComp data={resumeDataForTemplate} />
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
     </div>
   );
 }

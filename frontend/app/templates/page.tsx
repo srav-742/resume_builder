@@ -1,4 +1,5 @@
 // app/templates/page.tsx
+
 "use client";
 
 import { Card, CardContent } from "@/components/ui/card";
@@ -12,6 +13,9 @@ import { useToast } from "@/components/ui/use-toast";
 import { useState } from "react";
 import { saveResume } from "@/services/api";
 
+// ✅ ADD: Firebase auth and profile save
+import { getAuth } from 'firebase/auth';
+
 export default function TemplatesPage() {
   const { resumeData, updateResumeData } = useResume();
   const router = useRouter();
@@ -19,42 +23,41 @@ export default function TemplatesPage() {
   const [selectedTemplate, setSelectedTemplate] = useState<string>(resumeData.template || "template1");
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
-  // ✅ UPDATED template4 image path to match your actual file
   const templates = [
     {
       id: "template1",
       name: "Professional",
-      image: "images/templates/Professional.png", // ✅ Keep if this image exists
+      image: "images/templates/Professional.png",
       description: "Clean and professional design suitable for most industries",
     },
     {
       id: "template2",
       name: "Modern",
-      image: "images/templates/Modern.png", // ✅ Keep if this image exists
+      image: "images/templates/Modern.png",
       description: "Contemporary layout with a creative touch",
     },
     {
       id: "template3",
       name: "Minimal",
-      image: "images/templates/Minimal.png", // ✅ Keep if this image exists
+      image: "images/templates/Minimal.png",
       description: "Simple and elegant design focusing on content",
     },
     {
       id: "template4",
       name: "Web Designer",
-      image: "/images/templates/web-designer.png", // ✅ FIXED: Points to your actual image file
+      image: "/images/templates/web-designer.png",
       description: "Clean, single-column layout optimized for web designers and creatives",
     },
     {
       id: "template5",
       name: "Professional Profile",
-      image: "images/templates/SoftwareDeveloper.png", // ✅ Keep if this image exists
+      image: "images/templates/SoftwareDeveloper.png",
       description: "Clean design with profile photo and two-column skills",
     },
     {
       id: "template6",
       name: "Data Analyst",
-      image: "images/templates/DataAnalyst.png", // ✅ Keep if this image exists
+      image: "images/templates/DataAnalyst.png",
       description: "Minimalist single-column layout with pink headings — perfect for data analysts and professionals.",
     },
   ];
@@ -70,9 +73,34 @@ export default function TemplatesPage() {
       };
 
       updateResumeData(updatedData);
-      router.push(`/builder/personal-info`);
-
+      
+      // ✅ Save to resume system (your existing logic)
       await saveResume(updatedData);
+
+      // ✅ ALSO save to USER PROFILE (so /profile page can read it)
+      const auth = getAuth();
+      const user = auth.currentUser;
+      if (user) {
+        const idToken = await user.getIdToken();
+        const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000';
+
+        const profileResponse = await fetch(`${BACKEND_URL}/api/profile`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${idToken}`,
+          },
+          body: JSON.stringify({
+            selectedTemplate: templateId, // 👈 Only send template ID
+          }),
+        });
+
+        if (!profileResponse.ok) {
+          console.warn("Failed to save template to user profile (non-critical)");
+        }
+      }
+
+      router.push(`/builder/personal-info`);
 
       toast({
         title: "Template Selected",
