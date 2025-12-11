@@ -10,6 +10,7 @@ const router = express.Router();
 router.get('/', authenticate, async (req, res) => {
   try {
     const { uid: firebaseUid } = req.user;
+    // Get the most recent resume
     const resumes = await Resume.find({ firebaseUid }).sort({ updatedAt: -1 });
     res.status(200).json({ success: true, resumes });
   } catch (error) {
@@ -24,6 +25,7 @@ router.post('/', authenticate, async (req, res) => {
     const { uid: firebaseUid } = req.user;
     const resumeData = req.body;
 
+    // 1. Ensure User Profile exists
     let userProfile = await User.findOne({ firebaseUid });
     if (!userProfile) {
       userProfile = new User({
@@ -34,6 +36,7 @@ router.post('/', authenticate, async (req, res) => {
       await userProfile.save();
     }
 
+    // 2. Prepare Personal Info
     const incoming = resumeData.personalInfo || {};
     let dobStr = incoming.dateOfBirth;
     if (!dobStr && userProfile.dateOfBirth) {
@@ -54,15 +57,21 @@ router.post('/', authenticate, async (req, res) => {
       profilePicture: incoming.profilePicture || userProfile.profilePicture || "",
     };
 
+    // 3. Construct Clean Data (FIXED: Added missing fields and fixed mappings)
     const cleanData = {
       firebaseUid,
       personalInfo: enrichedPersonalInfo,
-      ...(resumeData.education !== undefined && { education: resumeData.education }),
-      ...(resumeData.experience !== undefined && { experience: resumeData.experience }),
-      ...(resumeData.template !== undefined && { template: resumeData.template }),
+      // Map 'experience' from frontend to 'workExperience' in DB Schema
+      workExperience: resumeData.experience || resumeData.workExperience || [],
+      education: resumeData.education || [],
+      skills: resumeData.skills || [],
+      projects: resumeData.projects || [],
+      additionalSections: resumeData.additionalSections || [],
+      template: resumeData.template || 'template1', // Default to template1
       updatedAt: new Date(),
     };
 
+    // 4. Update or Create
     let resume = await Resume.findOne({ firebaseUid });
     if (resume) {
       resume.set(cleanData);
@@ -97,12 +106,20 @@ router.put('/:id', authenticate, async (req, res) => {
       });
     }
 
+    // Update fields if present in request
     if (updateData.personalInfo) {
-      resume.personalInfo = { ...resume.personalInfo, ...updateData.personalInfo }; // ✅ Fixed typo
+      resume.personalInfo = { ...resume.personalInfo, ...updateData.personalInfo };
     }
-    if (updateData.education !== undefined) resume.education = updateData.education;
-    if (updateData.experience !== undefined) resume.experience = updateData.experience;
-    if (updateData.template !== undefined) resume.template = updateData.template;
+    if (updateData.education) resume.education = updateData.education;
+    // Handle both 'experience' and 'workExperience' keys
+    if (updateData.experience) resume.workExperience = updateData.experience;
+    if (updateData.workExperience) resume.workExperience = updateData.workExperience;
+    
+    if (updateData.skills) resume.skills = updateData.skills;
+    if (updateData.projects) resume.projects = updateData.projects;
+    if (updateData.additionalSections) resume.additionalSections = updateData.additionalSections;
+    
+    if (updateData.template) resume.template = updateData.template;
 
     resume.updatedAt = new Date();
     await resume.save();
