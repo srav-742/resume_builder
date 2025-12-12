@@ -10,7 +10,7 @@ const router = express.Router();
 router.get('/', authenticate, async (req, res) => {
   try {
     const { uid: firebaseUid } = req.user;
-    // Get the most recent resume
+    // Get all resumes sorted by updatedAt
     const resumes = await Resume.find({ firebaseUid }).sort({ updatedAt: -1 });
     res.status(200).json({ success: true, resumes });
   } catch (error) {
@@ -57,26 +57,27 @@ router.post('/', authenticate, async (req, res) => {
       profilePicture: incoming.profilePicture || userProfile.profilePicture || "",
     };
 
-    // 3. Construct Clean Data (FIXED: Added missing fields and fixed mappings)
+    // 3. Construct Clean Data
     const cleanData = {
       firebaseUid,
       personalInfo: enrichedPersonalInfo,
-      // Map 'experience' from frontend to 'workExperience' in DB Schema
       workExperience: resumeData.experience || resumeData.workExperience || [],
       education: resumeData.education || [],
       skills: resumeData.skills || [],
       projects: resumeData.projects || [],
       additionalSections: resumeData.additionalSections || [],
-      template: resumeData.template || 'template1', // Default to template1
+      template: resumeData.template || 'template1', // Default template
       updatedAt: new Date(),
     };
 
-    // 4. Update or Create
-    let resume = await Resume.findOne({ firebaseUid });
+    // 4. Check if resume with SAME TEMPLATE exists
+    let resume = await Resume.findOne({ firebaseUid, template: cleanData.template });
     if (resume) {
+      // Update existing resume for same template
       resume.set(cleanData);
       await resume.save();
     } else {
+      // Create new resume for new template
       resume = new Resume(cleanData);
       await resume.save();
     }
@@ -106,19 +107,13 @@ router.put('/:id', authenticate, async (req, res) => {
       });
     }
 
-    // Update fields if present in request
-    if (updateData.personalInfo) {
-      resume.personalInfo = { ...resume.personalInfo, ...updateData.personalInfo };
-    }
+    if (updateData.personalInfo) resume.personalInfo = { ...resume.personalInfo, ...updateData.personalInfo };
     if (updateData.education) resume.education = updateData.education;
-    // Handle both 'experience' and 'workExperience' keys
     if (updateData.experience) resume.workExperience = updateData.experience;
     if (updateData.workExperience) resume.workExperience = updateData.workExperience;
-    
     if (updateData.skills) resume.skills = updateData.skills;
     if (updateData.projects) resume.projects = updateData.projects;
     if (updateData.additionalSections) resume.additionalSections = updateData.additionalSections;
-    
     if (updateData.template) resume.template = updateData.template;
 
     resume.updatedAt = new Date();
