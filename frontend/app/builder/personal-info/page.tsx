@@ -80,6 +80,17 @@ export default function PersonalInfoPage() {
     }
   }, [user, isLoading, router])
 
+  // ✅ 🔥 NEW: Sync template from URL to context on mount
+  useEffect(() => {
+    const urlTemplate = searchParams.get("template");
+    if (urlTemplate && urlTemplate !== resumeData?.template) {
+      updateResumeData({
+        ...resumeData,
+        template: urlTemplate,
+      });
+    }
+  }, [searchParams, resumeData, updateResumeData]);
+
   // ✅ Conditional render AFTER all hooks
   if (isLoading || !user) {
     return <FormSkeleton />
@@ -190,7 +201,7 @@ export default function PersonalInfoPage() {
                 <FormItem>
                   <FormLabel>Profile Picture URL</FormLabel>
                   <FormControl>
-                    <Input placeholder="https://example.com/your-photo.jpg" {...field} />
+                    <Input placeholder="https://example.com/your-photo.jpg  " {...field} />
                   </FormControl>
                   <FormDescription>
                     Recommended: Square JPG or PNG image URL

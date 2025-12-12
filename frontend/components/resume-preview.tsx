@@ -15,20 +15,19 @@ import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 
 export function ResumePreview() {
-  const { resumeData, isLoading } = useResume(); // ✅ Fixed: assuming context exports resumeData
+  const { resumeData, isLoading } = useResume();
   const pathname = usePathname();
   const containerRef = useRef<HTMLDivElement>(null);
   const resumeRef = useRef<HTMLDivElement>(null);
   const [scale, setScale] = useState(1);
 
-  // Map current pathname to step name for ?from=...
   const getCurrentStep = () => {
     if (pathname.includes("/builder/education")) return "education";
     if (pathname.includes("/builder/work-experience")) return "work-experience";
     if (pathname.includes("/builder/skills-projects")) return "skills-projects";
     if (pathname.includes("/builder/additional-sections")) return "additional-sections";
     if (pathname.includes("/builder/ats-score")) return "ats-score";
-    return "personal-info"; // default fallback
+    return "personal-info";
   };
 
   const fullPreviewUrl = `/preview?from=${getCurrentStep()}`;
@@ -54,26 +53,29 @@ export function ResumePreview() {
     }
   }
 
-  // 💡 Auto-scale the resume to fit the preview container width
+  // 🔥 Auto-scale resume to fill full width
   useEffect(() => {
-    const resumeWidth = 816; // 8.5in * 96px/in
+    const idealResumeWidth = 816;
 
-    if (containerRef.current) {
-      const containerWidth = containerRef.current.clientWidth;
-      if (containerWidth > 0 && resumeWidth > containerWidth) {
-        setScale(containerWidth / resumeWidth);
-      } else {
-        setScale(1);
+    const adjustScale = () => {
+      if (containerRef.current) {
+        const containerWidth = containerRef.current.clientWidth;
+
+        const newScale = containerWidth / idealResumeWidth;
+        setScale(newScale);
       }
-    }
+    };
+
+    adjustScale();
+    window.addEventListener("resize", adjustScale);
+
+    return () => window.removeEventListener("resize", adjustScale);
   }, [resumeData]);
 
   if (isLoading) {
     return (
       <Card className="p-4 h-full flex items-center justify-center">
-        <div className="text-center">
-          <p className="text-muted-foreground">Loading preview...</p>
-        </div>
+        <p className="text-muted-foreground">Loading preview...</p>
       </Card>
     );
   }
@@ -90,27 +92,20 @@ export function ResumePreview() {
         </Link>
       </div>
 
-      {/* ✅ FIXED: Responsive preview container with controlled height */}
-      <Card className="p-4 overflow-hidden bg-white">
+      {/* ⭐ FULL-WIDTH RESUME PREVIEW (FIXED) */}
+      <Card className="bg-white h-full p-0">
         <div
           ref={containerRef}
-          className="w-full flex justify-center"
-          style={{
-            minHeight: "200px",
-            maxHeight: "calc(100vh - 200px)", // Limit height to avoid excessive scrolling
-            overflowY: "auto", // Allow vertical scroll if needed
-          }}
+          className="w-full h-full overflow-auto flex justify-start"   // ⬅ NOT CENTERED
         >
           <div
             ref={resumeRef}
-            className="bg-white"
             style={{
-              width: "816px",
+              minWidth: "816px",   // ⬅ allows scaling without locking width
+              width: "100%",       // ⬅ takes full width of container
               transform: `scale(${scale})`,
-              transformOrigin: "top left",
+              transformOrigin: "top left",   // ⬅ aligns preview to left
               transition: "transform 0.2s ease-in-out",
-              // Ensure content respects scaled dimensions
-              boxSizing: "border-box",
             }}
           >
             {renderTemplate()}
@@ -118,33 +113,33 @@ export function ResumePreview() {
         </div>
       </Card>
 
-      {/* Auto-Save & Tips */}
+      {/* Auto-save info */}
       <div className="bg-muted p-4 rounded-lg">
         <h4 className="font-medium mb-2">Auto-Save Enabled</h4>
         <p className="text-sm text-muted-foreground">
-          Your progress is automatically saved as you work. You can safely navigate between sections without losing your
-          data.
+          Your progress is automatically saved. You can safely navigate between sections.
         </p>
       </div>
 
+      {/* Tips */}
       <div className="bg-muted p-4 rounded-lg">
         <h4 className="font-medium mb-2">Tips</h4>
         <ul className="space-y-2 text-sm">
           <li className="flex items-start">
             <span className="text-green-600 mr-2">✓</span>
-            Keep your resume concise and relevant to the job
+            Keep your resume concise and relevant
           </li>
           <li className="flex items-start">
             <span className="text-green-600 mr-2">✓</span>
-            Use action verbs to describe your achievements
+            Use action verbs to describe achievements
           </li>
           <li className="flex items-start">
             <span className="text-green-600 mr-2">✓</span>
-            Quantify your accomplishments with numbers when possible
+            Add measurable accomplishments
           </li>
           <li className="flex items-start">
             <span className="text-green-600 mr-2">✓</span>
-            Tailor your resume to match the job description for better ATS scores
+            Tailor your resume to match the job description
           </li>
         </ul>
       </div>

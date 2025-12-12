@@ -11,10 +11,14 @@ export default function BuilderLayout({
 }) {
   return (
     <ThemeProviderWrapper>
-      <div className="min-h-screen flex flex-col">
+      {/* ✅ Added overflow-x-hidden to root container */}
+      <div className="min-h-screen flex flex-col overflow-x-hidden">
         <ResumeHeader currentStep="builder" />
         <div className="flex-1 container max-w-7xl mx-auto p-4 md:p-6 grid grid-cols-1 lg:grid-cols-5 gap-6">
-          <div className="lg:col-span-3">{children}</div>
+          {/* ✅ WRAP CHILDREN IN A SAFE CONTAINER */}
+          <div className="lg:col-span-3 overflow-x-hidden">
+            {children}
+          </div>
           <div className="lg:col-span-2 hidden lg:block">
             <ResumePreview />
           </div>

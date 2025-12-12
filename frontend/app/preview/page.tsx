@@ -11,7 +11,10 @@ export default function PreviewPage({
 }) {
   return (
     <Suspense fallback={<FormSkeleton />}>
-      <PreviewClient from={searchParams.from || "personal-info"} />
+      {/* ✅ Wrapper to prevent horizontal scrolling */}
+      <div className="overflow-x-hidden">
+        <PreviewClient from={searchParams.from || "personal-info"} />
+      </div>
     </Suspense>
   );
 }

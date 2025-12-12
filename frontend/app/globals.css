@@ -64,70 +64,27 @@
     --input: 217.2 32.6% 17.5%;
     --ring: 224.3 76.3% 48%;
   }
-}
 
-@layer base {
-  * {
-    @apply border-border;
+  /* ✅ GLOBAL BOX-SIZING RESET */
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
   }
+
+  /* ✅ CRITICAL: Prevent horizontal scroll at the ROOT */
+  html {
+    overflow-x: hidden;
+    width: 100%;
+  }
+
+  /* ✅ Body styling */
   body {
     @apply bg-blue-50;
-  }
-}
-
-/* Print and PDF specific styles */
-@media print {
-  @page {
-    margin: 10mm;
-    size: A4;
-  }
-
-  body {
-    background-color: white !important;
+    overflow-x: hidden;
     margin: 0;
     padding: 0;
-    font-size: 10pt !important;
-  }
-
-  /* Optimize spacing */
-  h1,
-  h2,
-  h3,
-  h4,
-  h5,
-  h6 {
-    margin-top: 8px !important;
-    margin-bottom: 4px !important;
-  }
-
-  p {
-    margin-top: 2px !important;
-    margin-bottom: 2px !important;
-  }
-
-  section,
-  .resume-section {
-    margin-bottom: 8px !important;
-  }
-
-  /* Hide duplicate sections */
-  .duplicate-section {
-    display: none !important;
-  }
-
-  /* Hide UI elements */
-  header,
-  nav,
-  button,
-  .no-print {
-    display: none !important;
-  }
-
-  /* Resume container */
-  #resume-content {
-    padding: 0 !important;
-    margin: 0 !important;
-    box-shadow: none !important;
+    width: 100%;
   }
 }
 
@@ -137,55 +94,36 @@
   break-inside: avoid;
 }
 
-/* Compact styling for PDF output */
-.pdf-compact h1 {
-  font-size: 18pt !important;
-}
-
-.pdf-compact h2 {
-  font-size: 14pt !important;
-}
-
-.pdf-compact h3 {
-  font-size: 12pt !important;
-}
-
-.pdf-compact p,
-.pdf-compact li {
-  font-size: 10pt !important;
-  line-height: 1.3 !important;
-}
-
-.pdf-compact section {
-  margin-bottom: 10px !important;
-}
-
-/* ✅ Fix for full /preview page — ensures resume fits screen */
+/* ✅ Responsive, scroll-safe resume container for screen preview */
 #resume-content {
   width: 100% !important;
-  max-width: 8.5in !important;
+  max-width: none !important;
   margin: 0 auto !important;
+  overflow-x: hidden !important;
+  padding: 0 4px !important;
 }
 
-/* Optional: improve padding on small screens */
+/* ✅ Only apply print-style width on larger screens */
+@media (min-width: 1024px) {
+  #resume-content {
+    max-width: 8.5in !important;
+    padding: 0 !important;
+  }
+}
+
+/* Improve padding on small screens */
 @media (max-width: 768px) {
   #resume-content {
     padding: 0 8px !important;
   }
 }
 
-/* ✅ CRITICAL: Fix for SIDE PREVIEW — ensures templates use full available width */
+/* ✅ Fix for side preview templates */
 .resume-template {
   width: 100% !important;
   max-width: none !important;
   padding: 0.75rem !important;
-  box-sizing: border-box !important;
   min-width: 0 !important;
-}
-
-/* Ensure all child elements respect full width */
-.resume-template * {
-  box-sizing: border-box !important;
 }
 
 /* Responsive adjustments for builder side preview */
@@ -204,4 +142,72 @@
     font-size: 0.85em !important;
     line-height: 1.4 !important;
   }
+}
+
+/* Print and PDF specific styles */
+@media print {
+  @page {
+    margin: 10mm;
+    size: A4;
+  }
+
+  body {
+    background-color: white !important;
+    margin: 0;
+    padding: 0;
+    font-size: 10pt !important;
+    overflow-x: visible !important;
+  }
+
+  /* Optimize spacing */
+  h1, h2, h3, h4, h5, h6 {
+    margin-top: 8px !important;
+    margin-bottom: 4px !important;
+  }
+
+  p {
+    margin-top: 2px !important;
+    margin-bottom: 2px !important;
+  }
+
+  section, .resume-section {
+    margin-bottom: 8px !important;
+  }
+
+  /* Hide duplicate sections */
+  .duplicate-section {
+    display: none !important;
+  }
+
+  /* Hide UI elements */
+  header, nav, button, .no-print {
+    display: none !important;
+  }
+
+  /* Resume container — restore fixed width for print */
+  #resume-content {
+    padding: 0 !important;
+    margin: 0 !important;
+    box-shadow: none !important;
+    max-width: 8.5in !important;
+    overflow-x: visible !important;
+  }
+}
+
+/* Compact styling for PDF output */
+.pdf-compact h1 {
+  font-size: 18pt !important;
+}
+.pdf-compact h2 {
+  font-size: 14pt !important;
+}
+.pdf-compact h3 {
+  font-size: 12pt !important;
+}
+.pdf-compact p, .pdf-compact li {
+  font-size: 10pt !important;
+  line-height: 1.3 !important;
+}
+.pdf-compact section {
+  margin-bottom: 10px !important;
 }

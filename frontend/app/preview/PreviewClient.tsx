@@ -60,7 +60,8 @@ export function PreviewClient({ from }: { from: string }) {
 
   return (
     <ThemeProviderWrapper>
-      <div className="min-h-screen flex flex-col bg-blue-50">
+      {/* ✅ Add overflow-x-hidden to the root container */}
+      <div className="min-h-screen flex flex-col bg-blue-50 overflow-x-hidden">
         <ResumeHeader currentStep="preview" />
         <main className="flex-1 w-full px-4 py-6 md:px-6">
           <div className="max-w-6xl mx-auto mb-6 md:mb-8">
