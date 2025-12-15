@@ -11,8 +11,8 @@ export default function PreviewPage({
 }) {
   return (
     <Suspense fallback={<FormSkeleton />}>
-      {/* ✅ Wrapper to prevent horizontal scrolling */}
-      <div className="overflow-x-hidden">
+      {/* ✅ Wrapper to FULLY prevent horizontal scrolling */}
+      <div className="w-full max-w-full overflow-x-hidden">
         <PreviewClient from={searchParams.from || "personal-info"} />
       </div>
     </Suspense>

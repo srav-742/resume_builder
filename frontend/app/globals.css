@@ -6,145 +6,112 @@
   :root {
     --background: 0 0% 100%;
     --foreground: 222.2 84% 4.9%;
-
     --card: 0 0% 100%;
     --card-foreground: 222.2 84% 4.9%;
-
     --popover: 0 0% 100%;
     --popover-foreground: 222.2 84% 4.9%;
-
     --primary: 221.2 83.2% 53.3%;
     --primary-foreground: 210 40% 98%;
-
     --secondary: 210 40% 96.1%;
     --secondary-foreground: 222.2 47.4% 11.2%;
-
     --muted: 210 40% 96.1%;
     --muted-foreground: 215.4 16.3% 46.9%;
-
     --accent: 210 40% 96.1%;
     --accent-foreground: 222.2 47.4% 11.2%;
-
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
-
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
     --ring: 221.2 83.2% 53.3%;
-
     --radius: 0.5rem;
   }
 
   .dark {
     --background: 222.2 84% 4.9%;
     --foreground: 210 40% 98%;
-
     --card: 222.2 84% 4.9%;
     --card-foreground: 210 40% 98%;
-
     --popover: 222.2 84% 4.9%;
     --popover-foreground: 210 40% 98%;
-
     --primary: 217.2 91.2% 59.8%;
     --primary-foreground: 222.2 47.4% 11.2%;
-
     --secondary: 217.2 32.6% 17.5%;
     --secondary-foreground: 210 40% 98%;
-
     --muted: 217.2 32.6% 17.5%;
     --muted-foreground: 215 20.2% 65.1%;
-
     --accent: 217.2 32.6% 17.5%;
     --accent-foreground: 210 40% 98%;
-
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 210 40% 98%;
-
     --border: 217.2 32.6% 17.5%;
     --input: 217.2 32.6% 17.5%;
     --ring: 224.3 76.3% 48%;
   }
 
-  /* ✅ GLOBAL BOX-SIZING RESET */
   *,
   *::before,
   *::after {
     box-sizing: border-box;
   }
 
-  /* ✅ CRITICAL: Prevent horizontal scroll at the ROOT */
-  html {
-    overflow-x: hidden;
+  /* 🔥 HARD CLAMP VIEWPORT */
+  html,
+  body {
     width: 100%;
+    max-width: 100vw;
+    overflow-x: clip; /* 🔥 stronger than hidden */
   }
 
-  /* ✅ Body styling */
   body {
     @apply bg-blue-50;
-    overflow-x: hidden;
     margin: 0;
     padding: 0;
-    width: 100%;
   }
 }
 
-/* Resume section styling */
-.resume-section {
-  page-break-inside: avoid;
-  break-inside: avoid;
-}
+/* ======================================================
+   RESUME PREVIEW — ABSOLUTE SCREEN FIX
+   ====================================================== */
 
-/* ✅ Responsive, scroll-safe resume container for screen preview */
+/* Clamp resume preview to viewport math */
 #resume-content {
-  width: 100% !important;
-  max-width: none !important;
-  margin: 0 auto !important;
-  overflow-x: hidden !important;
-  padding: 0 4px !important;
+  width: min(100%, 100vw) !important;
+  max-width: 100% !important;
+  margin-inline: auto !important;
+  overflow-x: clip !important;
+  padding: 0 !important; /* 🔥 remove width-breaking padding */
 }
 
-/* ✅ Only apply print-style width on larger screens */
-@media (min-width: 1024px) {
-  #resume-content {
-    max-width: 8.5in !important;
-    padding: 0 !important;
-  }
+/* Inner padding safe layer */
+#resume-content::before {
+  content: "";
+  display: block;
+  padding-inline: 8px;
 }
 
-/* Improve padding on small screens */
-@media (max-width: 768px) {
-  #resume-content {
-    padding: 0 8px !important;
-  }
+/* Kill shadow overflow */
+[class*="shadow"] {
+  overflow-x: clip !important;
 }
 
-/* ✅ Fix for side preview templates */
+/* Resume templates */
 .resume-template {
   width: 100% !important;
-  max-width: none !important;
-  padding: 0.75rem !important;
+  max-width: 100% !important;
   min-width: 0 !important;
+  overflow-x: clip !important;
 }
 
-/* Responsive adjustments for builder side preview */
-@media (max-width: 1024px) {
-  .resume-template {
-    padding: 0.5rem !important;
-  }
-  .resume-template h1,
-  .resume-template h2,
-  .resume-template h3 {
-    font-size: 1em !important;
-  }
-  .resume-template p,
-  .resume-template li,
-  .resume-template div {
-    font-size: 0.85em !important;
-    line-height: 1.4 !important;
-  }
+/* Flex overflow fix */
+.flex,
+.flex > * {
+  min-width: 0;
 }
 
-/* Print and PDF specific styles */
+/* ======================================================
+   PRINT & PDF — A4 ONLY
+   ====================================================== */
+
 @media print {
   @page {
     margin: 10mm;
@@ -153,61 +120,49 @@
 
   body {
     background-color: white !important;
-    margin: 0;
-    padding: 0;
-    font-size: 10pt !important;
     overflow-x: visible !important;
   }
 
-  /* Optimize spacing */
-  h1, h2, h3, h4, h5, h6 {
-    margin-top: 8px !important;
-    margin-bottom: 4px !important;
-  }
-
-  p {
-    margin-top: 2px !important;
-    margin-bottom: 2px !important;
-  }
-
-  section, .resume-section {
-    margin-bottom: 8px !important;
-  }
-
-  /* Hide duplicate sections */
-  .duplicate-section {
-    display: none !important;
-  }
-
-  /* Hide UI elements */
-  header, nav, button, .no-print {
-    display: none !important;
-  }
-
-  /* Resume container — restore fixed width for print */
   #resume-content {
-    padding: 0 !important;
-    margin: 0 !important;
-    box-shadow: none !important;
     max-width: 8.5in !important;
     overflow-x: visible !important;
   }
 }
 
-/* Compact styling for PDF output */
-.pdf-compact h1 {
-  font-size: 18pt !important;
-}
-.pdf-compact h2 {
-  font-size: 14pt !important;
-}
-.pdf-compact h3 {
-  font-size: 12pt !important;
-}
-.pdf-compact p, .pdf-compact li {
+/* Compact PDF styles */
+.pdf-compact h1 { font-size: 18pt !important; }
+.pdf-compact h2 { font-size: 14pt !important; }
+.pdf-compact h3 { font-size: 12pt !important; }
+.pdf-compact p,
+.pdf-compact li {
   font-size: 10pt !important;
   line-height: 1.3 !important;
 }
 .pdf-compact section {
   margin-bottom: 10px !important;
+}
+/* =========================================================
+   🚨 KILL ALL 100vw / w-screen OVERFLOW (FINAL FIX)
+   ========================================================= */
+
+/* Replace viewport width with document width */
+*[class*="w-screen"],
+*[class*="min-w-screen"],
+*[class*="max-w-screen"] {
+  width: 100% !important;
+  max-width: 100% !important;
+}
+
+/* Fix fixed-position elements causing overflow */
+*[style*="position: fixed"],
+.fixed {
+  max-width: 100% !important;
+  left: 0 !important;
+  right: 0 !important;
+}
+
+/* Absolute hard stop */
+html,
+body {
+  overflow-x: hidden !important;
 }

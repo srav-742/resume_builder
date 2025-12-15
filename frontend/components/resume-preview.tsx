@@ -60,7 +60,6 @@ export function ResumePreview() {
     const adjustScale = () => {
       if (containerRef.current) {
         const containerWidth = containerRef.current.clientWidth;
-
         const newScale = containerWidth / idealResumeWidth;
         setScale(newScale);
       }
@@ -92,19 +91,19 @@ export function ResumePreview() {
         </Link>
       </div>
 
-      {/* ⭐ FULL-WIDTH RESUME PREVIEW (FIXED) */}
+      {/* ⭐ FULL-WIDTH RESUME PREVIEW — HORIZONTAL SCROLL REMOVED */}
       <Card className="bg-white h-full p-0">
         <div
           ref={containerRef}
-          className="w-full h-full overflow-auto flex justify-start"   // ⬅ NOT CENTERED
+          className="w-full h-full overflow-x-hidden overflow-y-auto flex justify-start"
         >
           <div
             ref={resumeRef}
             style={{
-              minWidth: "816px",   // ⬅ allows scaling without locking width
-              width: "100%",       // ⬅ takes full width of container
+              minWidth: "816px",
+              width: "100%",
               transform: `scale(${scale})`,
-              transformOrigin: "top left",   // ⬅ aligns preview to left
+              transformOrigin: "top left",
               transition: "transform 0.2s ease-in-out",
             }}
           >
