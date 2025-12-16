@@ -199,3 +199,27 @@ export async function downloadResume(resumeData: ResumeData): Promise<void> {
   window.URL.revokeObjectURL(url);
   a.remove();
 }
+
+export async function chatWithAI(message: string): Promise<{ response: string; timestamp: string }> {
+  const token = await getAuthToken();
+  const headers: HeadersInit = {
+    "Content-Type": "application/json",
+  };
+
+  if (token) {
+    headers["Authorization"] = `Bearer ${token}`;
+  }
+
+  const response = await fetch(`${API_URL}/ai/chat`, {
+    method: "POST",
+    headers,
+    body: JSON.stringify({ message }),
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.error || "Failed to get AI response");
+  }
+
+  return response.json();
+}

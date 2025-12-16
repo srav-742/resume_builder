@@ -3,7 +3,7 @@
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
-import { FileText, LogOut, User } from "lucide-react"
+import { FileText, LogOut, User, Sparkles } from "lucide-react"
 import { signOut } from "firebase/auth"
 import { auth } from "@/lib/firebase"
 import { Button } from "@/components/ui/button"
@@ -54,6 +54,19 @@ export function ResumeHeader({ currentStep }: { currentStep: string }) {
 
           {user ? (
             <div className="flex items-center gap-4"> {/* ✅ Increased gap for spacing */}
+
+              {/* ➤ AI Counsellor Link */}
+              <Link href="/ai-counsellor" className="flex flex-col items-center group">
+                <div className="relative">
+                  <div className="w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center group-hover:bg-purple-200 transition-colors border border-purple-200">
+                    <Sparkles className="h-5 w-5 text-purple-600" />
+                  </div>
+                </div>
+                <span className="mt-1 text-xs text-gray-600 group-hover:text-purple-700 font-medium">
+                  AI Guide
+                </span>
+              </Link>
+
               {/* ➤ Enhanced Profile Icon — Highlighted, Circular, with Label */}
               <Link href="/profile" className="flex flex-col items-center group">
                 <div className="relative">

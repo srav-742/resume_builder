@@ -166,3 +166,26 @@ html,
 body {
   overflow-x: hidden !important;
 }
+
+/* =========================================================
+   ⚡️ BROWSER RENDERING OPTIMIZATIONS (CSS "MEMO")
+   These properties help the browser paint faster on load
+   ========================================================= */
+
+/* 1. Isolation: Tells browser #resume-content is independent 
+      so it calculates its layout separately from the body. */
+#resume-content {
+  contain: content; 
+}
+
+/* 2. Content Visibility: Acts like "lazy loading" for render. 
+      Only renders elements when they are approaching the screen. */
+.optimize-paint {
+  content-visibility: auto;
+  contain-intrinsic-size: 1000px; /* Prevents scrollbar jumping */
+}
+
+/* 3. Hardware Acceleration for interaction elements */
+.interactive-element {
+  will-change: transform, opacity;
+}

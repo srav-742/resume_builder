@@ -26,7 +26,7 @@ export default function RootLayout({
           content="telephone=no, date=no, email=no, address=no"
         />
       </head>
-      <body className={`${inter.className} bg-blue-50`}>
+      <body className={`${inter.className} bg-blue-50`} suppressHydrationWarning={true}>
         <ResumeProvider>{children}</ResumeProvider>
       </body>
     </html>
