@@ -22,4 +22,5 @@ if (!admin.apps.length) {
   }
 }
 
+// ✅ Re-export for clarity (no change in behavior)
 module.exports = admin;
