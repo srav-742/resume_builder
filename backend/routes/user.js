@@ -13,12 +13,16 @@ router.get('/profile', authenticate, async (req, res) => {
     let user = await User.findOne({ firebaseUid: uid });
 
     if (!user) {
+      console.log(`Creating new user for UID: ${uid}`);
       user = new User({
         firebaseUid: uid,
         email,
         name // may be null — that's okay
       });
       await user.save();
+      console.log(`User created successfully: ${user._id}`);
+    } else {
+      console.log(`User found: ${user._id}`);
     }
 
     res.json({
@@ -29,8 +33,8 @@ router.get('/profile', authenticate, async (req, res) => {
       // Only send minimal data here — full profile comes from /api/profile
     });
   } catch (error) {
-    console.error('User sync error:', error);
-    res.status(500).json({ error: 'Failed to sync user' });
+    console.error('User sync error detailed:', error);
+    res.status(500).json({ error: 'Failed to sync user', details: error.message });
   }
 });
 

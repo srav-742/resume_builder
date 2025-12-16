@@ -6,22 +6,25 @@ const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
 
-// Import routes (✅ REMOVED profileRoutes)
+// Import routes
 const userRoutes = require("./routes/user");
 const resumeRoutes = require("./routes/resume");
+const profileRoutes = require("./routes/profile");
+const aiRoutes = require("./routes/ai");
 const authenticate = require("./middleware/auth");
-const profileRoutes = require('./routes/profile');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// ✅ CORS: Allow your frontend origins
-// ⚠️ Also FIX: remove trailing spaces in origins
+// ✅ CORS: Cleaned origins (no trailing spaces)
 const corsOptions = {
   origin: [
     'http://localhost:3000',
-    'https://resume-builder-ydr2.vercel.app',   // ✅ removed trailing space
-    'https://resume-builder-lyart-six.vercel.app' // ✅ removed trailing space
+    'http://localhost:3001',
+    'http://localhost:3002',
+    'http://localhost:5173', // Vite default
+    'https://resume-builder-ydr2.vercel.app',
+    'https://resume-builder-lyart-six.vercel.app'
   ],
   credentials: true,
 };
@@ -30,30 +33,40 @@ app.use(cors(corsOptions));
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
-// ✅ MongoDB
-mongoose
-  .connect(process.env.MONGODB_URI)
-  .then(() => console.log("✅ MongoDB connected"))
-  .catch((err) => {
+// ✅ MongoDB Connection with Retry Logic
+const connectDB = async () => {
+  try {
+    if (!process.env.MONGODB_URI) {
+      throw new Error("MONGODB_URI is not defined in .env file");
+    }
+
+    await mongoose.connect(process.env.MONGODB_URI);
+    console.log("✅ MongoDB connected successfully");
+  } catch (err) {
     console.error("❌ MongoDB connection error:", err.message);
-    process.exit(1);
-  });
+    // Retry connection after 5 seconds
+    console.log("🔄 Retrying connection in 5 seconds...");
+    setTimeout(connectDB, 5000);
+  }
+};
 
-// ✅ Route order: SPECIFIC before GENERAL
-// ❌ REMOVED: app.use('/api/profile', authenticate, profileRoutes);
+connectDB();
+
+// ✅ Apply authentication to all resume routes (since they require user context)
 app.use('/api/user', authenticate, userRoutes);
-app.use('/api/resume', authenticate, resumeRoutes);
 app.use('/api/profile', authenticate, profileRoutes);
+app.use('/api/resume', authenticate, resumeRoutes);
+app.use('/api/ai', authenticate, aiRoutes);
 
-// Optional: catch-all /api route (only if needed, and place LAST)
-// app.use('/api', authenticate, require('./routes/api'));
+// Optional: If you have public API routes (e.g., /api/analyze), mount them WITHOUT auth and BEFORE authenticated ones
+// But currently, all resume operations are user-bound → so this is not needed
 
 // Health check
 app.get('/', (req, res) => {
-  res.json({ 
-    message: "Resume Builder Backend is running!", 
-    success: true, 
-    timestamp: new Date().toISOString() 
+  res.json({
+    message: "Resume Builder Backend is running!",
+    success: true,
+    timestamp: new Date().toISOString()
   });
 });
 
