@@ -4,22 +4,20 @@ const router = express.Router();
 const { GoogleGenerativeAI } = require('@google/generative-ai');
 const Resume = require('../models/Resume');
 
-// ✅ VALIDATE ENV FIRST — BEFORE ANY USE OF GEMINI
-if (!process.env.GEMINI_API_KEY) {
-  console.error("❌ GEMINI_API_KEY is missing in .env. AI features will NOT work.");
-  // We do NOT throw here — let server start, but disable the route
-}
+// ✅ Initialize model globally (safe fallback)
+let genAI = null;
+let model = null;
 
-// ✅ Initialize model ONLY if key exists — safe fallback
-let genAI, model;
-try {
-  if (process.env.GEMINI_API_KEY) {
+if (process.env.GEMINI_API_KEY) {
+  try {
     genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash-latest" });
+    model = genAI.getGenerativeModel({ model: "gemini-1.5-flash-latest" }); // ✅ Use latest stable
     console.log("✅ Gemini AI model initialized successfully");
+  } catch (err) {
+    console.error("❌ Failed to initialize Gemini model:", err.message);
   }
-} catch (err) {
-  console.error("❌ Failed to initialize Gemini model:", err.message);
+} else {
+  console.error("❌ GEMINI_API_KEY is missing in .env. AI features will NOT work.");
 }
 
 router.post('/chat', async (req, res) => {
