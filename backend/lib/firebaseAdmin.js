@@ -1,3 +1,4 @@
+
 // backend/lib/firebaseAdmin.js
 const admin = require('firebase-admin');
 
