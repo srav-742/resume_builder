@@ -16,15 +16,17 @@ const authenticate = require("./middleware/auth");
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// ✅ FIXED: Removed trailing spaces in origins
+// ✅ CORRECTED CORS: No trailing spaces, added all active domains
 const corsOptions = {
   origin: [
     'http://localhost:3000',
     'http://localhost:3001',
     'http://localhost:3002',
-    'http://localhost:5173', // Vite default
+    'http://localhost:3003', // Next.js default dev port
+    'http://localhost:5173', // Vite
     'https://resume-builder-ydr2.vercel.app',
-    'https://resume-builder-lyart-six.vercel.app'
+    'https://resume-builder-lyart-six.vercel.app',
+    'https://resume-builder-8bque.vercel.app' // ✅ Your current live domain
   ],
   credentials: true,
 };
@@ -44,7 +46,6 @@ const connectDB = async () => {
     console.log("✅ MongoDB connected successfully");
   } catch (err) {
     console.error("❌ MongoDB connection error:", err.message);
-    // Retry connection after 5 seconds
     console.log("🔄 Retrying connection in 5 seconds...");
     setTimeout(connectDB, 5000);
   }
@@ -52,7 +53,7 @@ const connectDB = async () => {
 
 connectDB();
 
-// ✅ Apply authentication to all resume routes (since they require user context)
+// ✅ Protected routes with authentication middleware
 app.use('/api/user', authenticate, userRoutes);
 app.use('/api/profile', authenticate, profileRoutes);
 app.use('/api/resume', authenticate, resumeRoutes);
