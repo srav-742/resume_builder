@@ -1,30 +1,27 @@
 // backend/routes/ai.js
 const express = require('express');
 const router = express.Router();
-const { GoogleGenerativeAI } = require('@google/generative-ai');
+const Groq = require("groq-sdk");
 const Resume = require('../models/Resume');
 
-// ✅ Global model instance
-let model = null;
+// ✅ Initialize Groq client
+let groq = null;
 
-// Initialize only if API key exists
-if (process.env.GEMINI_API_KEY) {
+if (process.env.GROQ_API_KEY) {
   try {
-    const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-    // ✅ Use a model known to exist in v1beta
-    model = genAI.getGenerativeModel({ model: "gemini-1.5-flash-latest" });
-    console.log("✅ Gemini AI model (gemini-1.5-flash-latest) initialized successfully");
+    groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
+    console.log("✅ Groq AI client initialized successfully");
   } catch (err) {
-    console.error("❌ Failed to initialize Gemini model:", err.message);
+    console.error("❌ Failed to initialize Groq client:", err.message);
   }
 } else {
-  console.error("❌ GEMINI_API_KEY is missing in .env. AI features will NOT work.");
+  console.error("❌ GROQ_API_KEY is missing in .env. AI features will NOT work.");
 }
 
 router.post('/chat', async (req, res) => {
-  if (!model) {
+  if (!groq) {
     return res.status(500).json({
-      error: "AI service is unavailable. Please contact administrator."
+      error: "AI service is not available. Please contact administrator."
     });
   }
 
@@ -62,25 +59,22 @@ router.post('/chat', async (req, res) => {
       resumeContext = JSON.stringify(cleanResume, null, 2);
     }
 
-    const prompt = `
-You are an expert AI Career Counsellor. Help the user with career advice, resume feedback, or interview prep.
+    const systemPrompt = `You are an expert AI Career Counsellor. Help the user with career advice, resume feedback, or interview prep based on their resume data. Be concise, professional, and encouraging.`;
 
-USER RESUME:
-${resumeContext}
+    const userMessage = `USER RESUME:\n${resumeContext}\n\nUSER MESSAGE: "${message}"`;
 
-INSTRUCTIONS:
-- Be concise, professional, and encouraging.
-- If the user hasn't created a resume, guide them to do so.
-- Answer based on their experience and skills.
+    // ✅ Call Groq (using Llama 3 8B — free & fast)
+    const chatCompletion = await groq.chat.completions.create({
+      messages: [
+        { role: "system", content: systemPrompt },
+        { role: "user", content: userMessage }
+      ],
+      model: "llama3-8b-8192", // ✅ Free, fast, no billing
+      temperature: 0.7,
+      max_tokens: 512,
+    });
 
-USER MESSAGE: "${message}"
-
-RESPONSE:
-`;
-
-    // ✅ Correct usage
-    const result = await model.generateContent(prompt);
-    const responseText = result.response.text();
+    const responseText = chatCompletion.choices[0]?.message?.content?.trim() || "Sorry, I couldn't generate a response.";
 
     res.json({
       response: responseText,
@@ -88,16 +82,10 @@ RESPONSE:
     });
 
   } catch (error) {
-    console.error('🤖 AI Chat Error:', error);
+    console.error('🤖 Groq AI Error:', error);
 
-    if (error.message?.includes('API_KEY_INVALID') || error.status === 403) {
-      return res.status(403).json({ error: "Invalid API key. Contact administrator." });
-    }
-
-    if (error.status === 404) {
-      return res.status(500).json({
-        error: "Gemini model not found. Using 'gemini-1.5-flash-latest' requires Generative Language API access."
-      });
+    if (error.status === 401 || error.message?.includes('invalid_api_key')) {
+      return res.status(403).json({ error: "Invalid Groq API key." });
     }
 
     if (error.status === 429) {
