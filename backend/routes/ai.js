@@ -4,16 +4,16 @@ const router = express.Router();
 const { GoogleGenerativeAI } = require('@google/generative-ai');
 const Resume = require('../models/Resume');
 
-// ✅ Safe initialization
-let genAI = null;
+// ✅ Global model instance
 let model = null;
 
+// Initialize only if API key exists
 if (process.env.GEMINI_API_KEY) {
   try {
-    genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-    // ✅ Use a model that is publicly available
-    model = genAI.getGenerativeModel({ model: "gemini-1.0-pro" });
-    console.log("✅ Gemini AI model (gemini-1.0-pro) initialized successfully");
+    const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+    // ✅ Use a model known to exist in v1beta
+    model = genAI.getGenerativeModel({ model: "gemini-1.5-flash-latest" });
+    console.log("✅ Gemini AI model (gemini-1.5-flash-latest) initialized successfully");
   } catch (err) {
     console.error("❌ Failed to initialize Gemini model:", err.message);
   }
@@ -24,7 +24,7 @@ if (process.env.GEMINI_API_KEY) {
 router.post('/chat', async (req, res) => {
   if (!model) {
     return res.status(500).json({
-      error: "AI service is not configured. Please contact administrator."
+      error: "AI service is unavailable. Please contact administrator."
     });
   }
 
@@ -78,7 +78,7 @@ USER MESSAGE: "${message}"
 RESPONSE:
 `;
 
-    // ✅ Correct way to call and extract response
+    // ✅ Correct usage
     const result = await model.generateContent(prompt);
     const responseText = result.response.text();
 
@@ -91,14 +91,12 @@ RESPONSE:
     console.error('🤖 AI Chat Error:', error);
 
     if (error.message?.includes('API_KEY_INVALID') || error.status === 403) {
-      return res.status(403).json({
-        error: "Invalid or disabled API key. Contact administrator."
-      });
+      return res.status(403).json({ error: "Invalid API key. Contact administrator." });
     }
 
-    if (error.message?.includes('404') || error.message?.includes('not found') || error.status === 404) {
+    if (error.status === 404) {
       return res.status(500).json({
-        error: "Gemini model is unavailable. Using gemini-1.0-pro requires API access."
+        error: "Gemini model not found. Using 'gemini-1.5-flash-latest' requires Generative Language API access."
       });
     }
 
@@ -106,7 +104,7 @@ RESPONSE:
       return res.status(429).json({ error: "Rate limit exceeded. Please try again later." });
     }
 
-    res.status(500).json({ error: "AI generation failed. Please try again in a few seconds." });
+    res.status(500).json({ error: "AI generation failed. Please try again." });
   }
 });
 
