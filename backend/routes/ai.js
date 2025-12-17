@@ -4,15 +4,16 @@ const router = express.Router();
 const { GoogleGenerativeAI } = require('@google/generative-ai');
 const Resume = require('../models/Resume');
 
-// ✅ Initialize model globally (safe fallback)
+// ✅ Safe initialization
 let genAI = null;
 let model = null;
 
 if (process.env.GEMINI_API_KEY) {
   try {
     genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-    model = genAI.getGenerativeModel({ model: "gemini-1.5-flash-latest" }); // ✅ Use latest stable
-    console.log("✅ Gemini AI model initialized successfully");
+    // ✅ Use a model that is publicly available
+    model = genAI.getGenerativeModel({ model: "gemini-1.0-pro" });
+    console.log("✅ Gemini AI model (gemini-1.0-pro) initialized successfully");
   } catch (err) {
     console.error("❌ Failed to initialize Gemini model:", err.message);
   }
@@ -21,7 +22,6 @@ if (process.env.GEMINI_API_KEY) {
 }
 
 router.post('/chat', async (req, res) => {
-  // ✅ Runtime check: if model not ready, fail early
   if (!model) {
     return res.status(500).json({
       error: "AI service is not configured. Please contact administrator."
@@ -30,16 +30,16 @@ router.post('/chat', async (req, res) => {
 
   try {
     const { message } = req.body;
-    const userId = req.user.uid; // From authenticate middleware
+    const userId = req.user.uid;
 
-    if (!message) {
+    if (!message?.trim()) {
       return res.status(400).json({ error: "Message is required" });
     }
 
-    // 1. Fetch user's resume data
+    // Fetch user resume
     const resume = await Resume.findOne({ firebaseUid: userId });
-
     let resumeContext = "The user has not created a resume yet.";
+
     if (resume) {
       const cleanResume = {
         fullName: resume.personalInfo?.fullName,
@@ -59,56 +59,54 @@ router.post('/chat', async (req, res) => {
           field: edu.fieldOfStudy
         }))
       };
-      resumeContext = JSON.stringify(cleanResume);
+      resumeContext = JSON.stringify(cleanResume, null, 2);
     }
 
-    // 2. Construct the prompt
     const prompt = `
-You are an expert AI Career Counsellor. 
-Your goal is to help the user with their career, specifically focusing on their resume, skill gaps, and interview prep.
+You are an expert AI Career Counsellor. Help the user with career advice, resume feedback, or interview prep.
 
-CONTEXT - USER RESUME DATA:
+USER RESUME:
 ${resumeContext}
 
 INSTRUCTIONS:
-1. Analyze the user's data provided above.
-2. If the user asks for a specific analysis (like "check my resume"), look for gaps in their skills or experience compared to typical industry standards for their role.
-3. If the user asks for a "skill quiz", ask them a technical question based on their listed skills.
-4. If the user asks for a "mock interview", ask a behavioral or technical interview question relevant to their experience.
-5. Be encouraging, professional, and concise.
+- Be concise, professional, and encouraging.
+- If the user hasn't created a resume, guide them to do so.
+- Answer based on their experience and skills.
 
 USER MESSAGE: "${message}"
 
 RESPONSE:
 `;
 
-    // 3. Generate content
+    // ✅ Correct way to call and extract response
     const result = await model.generateContent(prompt);
-    const response = await result.response;
-    const text = response.text();
+    const responseText = result.response.text();
 
     res.json({
-      response: text,
+      response: responseText,
       timestamp: new Date().toISOString()
     });
 
   } catch (error) {
     console.error('🤖 AI Chat Error:', error);
 
-    // Enhanced error detection
-    if (error.message?.includes('API_KEY_INVALID')) {
+    if (error.message?.includes('API_KEY_INVALID') || error.status === 403) {
       return res.status(403).json({
-        error: "Invalid API Key. Please check backend configuration."
+        error: "Invalid or disabled API key. Contact administrator."
       });
     }
 
-    if (error.message?.includes('404') || error.message?.includes('Model not found')) {
+    if (error.message?.includes('404') || error.message?.includes('not found') || error.status === 404) {
       return res.status(500).json({
-        error: "Gemini model not available. Check API key permissions in Google Cloud Console."
+        error: "Gemini model is unavailable. Using gemini-1.0-pro requires API access."
       });
     }
 
-    res.status(500).json({ error: "AI response generation failed. Please try again." });
+    if (error.status === 429) {
+      return res.status(429).json({ error: "Rate limit exceeded. Please try again later." });
+    }
+
+    res.status(500).json({ error: "AI generation failed. Please try again in a few seconds." });
   }
 });
 
