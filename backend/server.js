@@ -16,7 +16,7 @@ const authenticate = require("./middleware/auth");
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// ✅ CORS: Cleaned origins (no trailing spaces)
+// ✅ FIXED: Removed trailing spaces in origins
 const corsOptions = {
   origin: [
     'http://localhost:3000',
@@ -58,9 +58,6 @@ app.use('/api/profile', authenticate, profileRoutes);
 app.use('/api/resume', authenticate, resumeRoutes);
 app.use('/api/ai', authenticate, aiRoutes);
 
-// Optional: If you have public API routes (e.g., /api/analyze), mount them WITHOUT auth and BEFORE authenticated ones
-// But currently, all resume operations are user-bound → so this is not needed
-
 // Health check
 app.get('/', (req, res) => {
   res.json({
@@ -84,5 +81,3 @@ app.use((err, req, res, next) => {
 app.listen(PORT, () => {
   console.log(`🚀 Backend running on http://localhost:${PORT}`);
 });
-
-
