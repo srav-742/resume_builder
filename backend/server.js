@@ -11,6 +11,7 @@ const userRoutes = require("./routes/user");
 const resumeRoutes = require("./routes/resume");
 const profileRoutes = require("./routes/profile");
 const aiRoutes = require("./routes/ai");
+const conversationsRoutes = require("./routes/conversations");
 const authenticate = require("./middleware/auth");
 
 const app = express();
@@ -58,6 +59,7 @@ app.use('/api/user', authenticate, userRoutes);
 app.use('/api/profile', authenticate, profileRoutes);
 app.use('/api/resume', authenticate, resumeRoutes);
 app.use('/api/ai', authenticate, aiRoutes);
+app.use('/api/conversations', authenticate, conversationsRoutes);
 
 // Health check
 app.get('/', (req, res) => {
