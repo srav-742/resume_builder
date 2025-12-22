@@ -8,13 +8,14 @@ const { GoogleGenerativeAI } = require('@google/generative-ai');
 // Initialize Gemini
 let model = null;
 let genAI = null;
+let currentModelName = "gemini-1.5-flash"; // Track which model we're using
 
 if (process.env.GEMINI_API_KEY) {
     try {
         genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-        // Use 'gemini-2.0-flash' - this is an ACTUAL available model
-        model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
-        console.log("✅ Gemini AI initialized for counselling (gemini-2.0-flash)");
+        // Use 'gemini-1.5-flash' - stable model with better quota limits
+        model = genAI.getGenerativeModel({ model: currentModelName });
+        console.log(`✅ Gemini AI initialized for counselling (${currentModelName})`);
     } catch (err) {
         console.error("❌ Gemini initialization failed:", err.message);
         console.error("Full error:", err);
@@ -24,21 +25,62 @@ if (process.env.GEMINI_API_KEY) {
 }
 
 // Lazy initialization function as fallback
-function ensureModel() {
+function ensureModel(preferredModel = "gemini-1.5-flash") {
     if (!model && process.env.GEMINI_API_KEY) {
         try {
             if (!genAI) {
                 genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
             }
-            // Use 'gemini-2.0-flash' - this is an ACTUAL available model
-            model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
-            console.log("✅ Gemini AI lazy-initialized (gemini-2.0-flash)");
+            currentModelName = preferredModel;
+            model = genAI.getGenerativeModel({ model: currentModelName });
+            console.log(`✅ Gemini AI lazy-initialized (${currentModelName})`);
         } catch (err) {
             console.error("❌ Gemini lazy-initialization failed:", err.message);
             throw new Error("AI service unavailable");
         }
     }
     return model;
+}
+
+// Function to generate content with automatic fallback on quota errors
+async function generateWithFallback(prompt) {
+    const modelsToTry = ["gemini-1.5-flash", "gemini-pro", "gemini-1.5-pro"];
+    let lastError = null;
+
+    for (const modelName of modelsToTry) {
+        try {
+            console.log(`🔄 Attempting to use model: ${modelName}`);
+
+            // Reinitialize model with the current attempt
+            if (!genAI) {
+                genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+            }
+            const attemptModel = genAI.getGenerativeModel({ model: modelName });
+
+            const result = await attemptModel.generateContent(prompt);
+            console.log(`✅ Successfully generated content with ${modelName}`);
+
+            // Update the global model reference if successful
+            model = attemptModel;
+            currentModelName = modelName;
+
+            return result;
+        } catch (error) {
+            console.error(`❌ Failed with ${modelName}:`, error.message);
+            lastError = error;
+
+            // If it's not a quota error, stop trying
+            if (error.status !== 429) {
+                throw error;
+            }
+
+            console.log(`⚠️ Quota exceeded for ${modelName}, trying next model...`);
+            continue;
+        }
+    }
+
+    // If all models failed, throw the last error
+    throw lastError || new Error("All models failed");
 }
 
 
@@ -443,7 +485,8 @@ YOUR ANALYSIS:
         console.log('📝 Calling Gemini API with prompt length:', prompt.length);
         console.log('📝 Context data:', JSON.stringify(counsellingContext, null, 2));
 
-        const result = await model.generateContent(prompt);
+        // Use fallback function that tries multiple models if quota is exceeded
+        const result = await generateWithFallback(prompt);
         console.log('✅ Gemini API call successful');
 
         const analysisText = result.response.text();
