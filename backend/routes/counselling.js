@@ -12,9 +12,9 @@ let genAI = null;
 if (process.env.GEMINI_API_KEY) {
     try {
         genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-        // Use 'gemini-pro' for SDK v0.24.1 (v1beta API)
-        model = genAI.getGenerativeModel({ model: "gemini-pro" });
-        console.log("✅ Gemini AI initialized for counselling (gemini-pro)");
+        // Use 'gemini-2.0-flash' - this is an ACTUAL available model
+        model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+        console.log("✅ Gemini AI initialized for counselling (gemini-2.0-flash)");
     } catch (err) {
         console.error("❌ Gemini initialization failed:", err.message);
         console.error("Full error:", err);
@@ -30,9 +30,9 @@ function ensureModel() {
             if (!genAI) {
                 genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
             }
-            // Use 'gemini-pro' for SDK v0.24.1 (v1beta API)
-            model = genAI.getGenerativeModel({ model: "gemini-pro" });
-            console.log("✅ Gemini AI lazy-initialized (gemini-pro)");
+            // Use 'gemini-2.0-flash' - this is an ACTUAL available model
+            model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+            console.log("✅ Gemini AI lazy-initialized (gemini-2.0-flash)");
         } catch (err) {
             console.error("❌ Gemini lazy-initialization failed:", err.message);
             throw new Error("AI service unavailable");
