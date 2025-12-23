@@ -1,0 +1,776 @@
+"use client";
+
+import React, { useState, useRef, useEffect } from "react";
+import { Send, Bot, User, Sparkles, Loader2, Lock, FileText, Brain, MessageCircle, Mic, MicOff, Volume2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Label } from "@/components/ui/label";
+import { chatWithAI, getUserResume } from "@/services/api";
+import { cn } from "@/lib/utils";
+
+type Message = {
+    id: string;
+    role: "user" | "ai";
+    content: string;
+    timestamp: Date;
+};
+
+type ResumeData = {
+    fullName: string;
+    role: string;
+    skills: string[];
+    experience: string;
+};
+
+type QuizQuestion = {
+    id: number;
+    question: string;
+    options: string[];
+    correctAnswer: number;
+};
+
+type QuizState = {
+    active: boolean;
+    questions: QuizQuestion[];
+    currentQuestion: number;
+    userAnswers: (number | null)[];
+    selectedSkill: string;
+    showResults: boolean;
+    score: number;
+};
+
+type InterviewState = {
+    active: boolean;
+    isListening: boolean;
+    isSpeaking: boolean;
+    allQuestions: string[];  // Store all 5 questions upfront
+    currentQuestion: string;
+    questionNumber: number;
+    totalQuestions: number;
+    questionsAndAnswers: Array<{ question: string; answer: string; feedback: string }>;
+    showFinalReport: boolean;
+};
+
+const FRONTEND_SKILLS = [
+    "HTML", "CSS", "JavaScript", "TypeScript", "React", "Next.js",
+    "Vue.js", "Angular", "Svelte", "Tailwind CSS", "Bootstrap"
+];
+
+const BACKEND_SKILLS = [
+    "Node.js", "Express.js", "Python", "Django", "Flask", "Java",
+    "Spring Boot", "PHP", "Laravel", "Ruby", "Rails", "C#", ".NET", "MongoDB", "PostgreSQL", "MySQL"
+];
+
+const formatAIResponse = (text: string) => {
+    return text.split('\n').map((line, idx) => (
+        <p key={idx} className="mb-2 leading-relaxed">{line}</p>
+    ));
+};
+
+const calculateExperience = (workExp: any) => {
+    if (!workExp?.startDate) return "Not Set";
+    const start = new Date(workExp.startDate);
+    const end = workExp.currentlyWorking ? new Date() : new Date(workExp.endDate || new Date());
+    const years = Math.floor((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24 * 365));
+    return years > 0 ? `${years} Years` : "Less than 1 Year";
+};
+
+export default function ChatInterface() {
+    const [messages, setMessages] = useState<Message[]>([{
+        id: "welcome",
+        role: "ai",
+        content: "Hello! I'm your AI Career Counsellor. I can help you with resume tips, interview preparation, and career advice. What's on your mind today?",
+        timestamp: new Date()
+    }]);
+    const [input, setInput] = useState("");
+    const [isLoading, setIsLoading] = useState(false);
+    const [resumeData, setResumeData] = useState<ResumeData | null>(null);
+    const [activeMode, setActiveMode] = useState<string | null>(null);
+    const [quizState, setQuizState] = useState<QuizState>({
+        active: false,
+        questions: [],
+        currentQuestion: 0,
+        userAnswers: [],
+        selectedSkill: "",
+        showResults: false,
+        score: 0
+    });
+    const [showSkillDropdown, setShowSkillDropdown] = useState(false);
+    const [interviewState, setInterviewState] = useState<InterviewState>({
+        active: false,
+        isListening: false,
+        isSpeaking: false,
+        allQuestions: [],
+        currentQuestion: "",
+        questionNumber: 0,
+        totalQuestions: 5,
+        questionsAndAnswers: [],
+        showFinalReport: false
+    });
+
+    const endRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        endRef.current?.scrollIntoView({ behavior: "smooth" });
+    }, [messages]);
+
+    useEffect(() => {
+        fetchResumeData();
+    }, []);
+
+    const fetchResumeData = async () => {
+        try {
+            const resume = await getUserResume();
+            if (resume) {
+                setResumeData({
+                    fullName: resume.personalInfo?.fullName || "Not Set",
+                    role: resume.workExperience?.[0]?.jobTitle || "Not Set",
+                    skills: resume.skills || [],
+                    experience: calculateExperience(resume.workExperience?.[0]) || "Not Set"
+                });
+            }
+        } catch (error) {
+            console.error("Failed to fetch resume data:", error);
+        }
+    };
+
+    const handleSend = async (text: string = input) => {
+        if (!text.trim() || isLoading) return;
+
+        const userMsg: Message = {
+            id: Date.now().toString(),
+            role: "user",
+            content: text,
+            timestamp: new Date(),
+        };
+
+        setMessages((prev) => [...prev, userMsg]);
+        setInput("");
+        setIsLoading(true);
+
+        try {
+            const { response } = await chatWithAI(text);
+            const aiMsg: Message = {
+                id: (Date.now() + 1).toString(),
+                role: "ai",
+                content: response,
+                timestamp: new Date(),
+            };
+            setMessages((prev) => [...prev, aiMsg]);
+        } catch (error: any) {
+            const errorMsg: Message = {
+                id: (Date.now() + 1).toString(),
+                role: "ai",
+                content: "I'm having trouble connecting right now.",
+                timestamp: new Date(),
+            };
+            setMessages((prev) => [...prev, errorMsg]);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const handleGapAnalysis = () => {
+        setActiveMode("gap");
+        setQuizState({ ...quizState, active: false });
+        setInterviewState({ ...interviewState, active: false });
+        handleSend("Analyze my skill gaps for a Senior Full Stack role. Based on my resume, what skills do I need to develop?");
+    };
+
+    const handleTechQuizClick = () => {
+        setShowSkillDropdown(true);
+        setActiveMode("quiz");
+        setInterviewState({ ...interviewState, active: false });
+    };
+
+    const startQuizWithSkill = async (skill: string) => {
+        setQuizState({
+            ...quizState,
+            selectedSkill: skill,
+            active: true,
+            showResults: false
+        });
+        setShowSkillDropdown(false);
+        setIsLoading(true);
+
+        try {
+            const prompt = `Generate exactly 5 multiple choice questions about ${skill} in this EXACT JSON format:
+[{"id":1,"question":"Question text?","options":["A","B","C","D"],"correctAnswer":0}]
+Return ONLY the JSON array.`;
+
+            const { response } = await chatWithAI(prompt);
+            const jsonMatch = response.match(/\[[\s\S]*\]/);
+            if (jsonMatch) {
+                const questions: QuizQuestion[] = JSON.parse(jsonMatch[0]);
+                setQuizState(prev => ({
+                    ...prev,
+                    questions,
+                    userAnswers: new Array(questions.length).fill(null),
+                    currentQuestion: 0
+                }));
+            }
+        } catch (error) {
+            console.error("Quiz generation failed:", error);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const handleAnswerSelect = (answerIndex: number) => {
+        const newAnswers = [...quizState.userAnswers];
+        newAnswers[quizState.currentQuestion] = answerIndex;
+        setQuizState(prev => ({ ...prev, userAnswers: newAnswers }));
+    };
+
+    const handleNextQuestion = () => {
+        if (quizState.currentQuestion < quizState.questions.length - 1) {
+            setQuizState(prev => ({ ...prev, currentQuestion: prev.currentQuestion + 1 }));
+        }
+    };
+
+    const handlePreviousQuestion = () => {
+        if (quizState.currentQuestion > 0) {
+            setQuizState(prev => ({ ...prev, currentQuestion: prev.currentQuestion - 1 }));
+        }
+    };
+
+    const handleSubmitQuiz = () => {
+        let correctCount = 0;
+        quizState.questions.forEach((q, idx) => {
+            if (quizState.userAnswers[idx] === q.correctAnswer) correctCount++;
+        });
+        const score = (correctCount / quizState.questions.length) * 100;
+        setQuizState(prev => ({ ...prev, showResults: true, score }));
+    };
+
+    const resetQuiz = () => {
+        setQuizState({
+            active: false,
+            questions: [],
+            currentQuestion: 0,
+            userAnswers: [],
+            selectedSkill: "",
+            showResults: false,
+            score: 0
+        });
+        setActiveMode(null);
+    };
+
+    // Voice Interview Functions
+    const speak = (text: string) => {
+        if ('speechSynthesis' in window) {
+            window.speechSynthesis.cancel();
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.rate = 0.9;
+            utterance.pitch = 1;
+            utterance.volume = 1;
+
+            utterance.onstart = () => {
+                setInterviewState(prev => ({ ...prev, isSpeaking: true }));
+            };
+
+            utterance.onend = () => {
+                setInterviewState(prev => ({ ...prev, isSpeaking: false }));
+            };
+
+            window.speechSynthesis.speak(utterance);
+        }
+    };
+
+    const startVoiceRecognition = () => {
+        if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+            alert("Voice recognition is not supported in your browser.");
+            return;
+        }
+
+        const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+        const recognition = new SpeechRecognition();
+        recognition.continuous = false;
+        recognition.interimResults = false;
+        recognition.lang = 'en-US';
+        recognition.onstart = () => {
+            setInterviewState(prev => ({ ...prev, isListening: true }));
+        };
+
+        recognition.onresult = async (event: any) => {
+            const transcript = event.results[0][0].transcript;
+            console.log("User answered:", transcript);
+            console.log("Current question number:", interviewState.questionNumber);
+
+            // Show user's answer in chat
+            const userMsg: Message = {
+                id: Date.now().toString(),
+                role: "user",
+                content: transcript,
+                timestamp: new Date(),
+            };
+            setMessages((prev) => [...prev, userMsg]);
+
+            setIsLoading(true);
+            setInterviewState(prev => ({ ...prev, isListening: false }));
+
+            try {
+                // Save Q&A without immediate feedback
+                const newQA = {
+                    question: interviewState.currentQuestion,
+                    answer: transcript,
+                    feedback: "" // Will be analyzed at the end
+                };
+
+                const updatedQAs = [...interviewState.questionsAndAnswers, newQA];
+                console.log("Total answers so far:", updatedQAs.length);
+
+                // Check if we should ask another question or finish
+                if (interviewState.questionNumber < interviewState.totalQuestions - 1) {
+                    console.log("Asking next question...");
+                    // Get next pre-generated question (NO API CALL!)
+                    const nextQuestionNumber = interviewState.questionNumber + 1;
+                    const nextQuestion = interviewState.allQuestions[nextQuestionNumber];
+
+                    const nextQMsg: Message = {
+                        id: (Date.now() + 1).toString(),
+                        role: "ai",
+                        content: nextQuestion,
+                        timestamp: new Date(),
+                    };
+                    setMessages((prev) => [...prev, nextQMsg]);
+
+                    setInterviewState(prev => ({
+                        ...prev,
+                        currentQuestion: nextQuestion,
+                        questionNumber: prev.questionNumber + 1,
+                        questionsAndAnswers: updatedQAs
+                    }));
+
+                    // Speak next question
+                    setTimeout(() => speak(nextQuestion), 500);
+                } else {
+                    // All questions answered - Now analyze everything together
+                    const reportPrompt = `You conducted a technical interview for ${resumeData?.role} position. Here are all the questions and answers:
+
+${updatedQAs.map((qa, i) => `Q${i + 1}: ${qa.question}
+Answer: ${qa.answer}`).join('\n\n')}
+
+Provide a comprehensive analysis:
+
+1. **Overall Performance**: Brief summary of how the candidate did
+2. **Question-by-Question Feedback**: For each question, briefly evaluate the answer (correct/incorrect, strengths/weaknesses)
+3. **Skills You Need to Improve**: List specific technical skills where the candidate is lagging based on their answers
+4. **Topics to Learn**: Specific concepts or technologies they should study
+5. **Recommendations**: Actionable next steps
+
+Be specific and constructive. Format your response nicely with clear sections.`;
+
+                    const { response: finalReport } = await chatWithAI(reportPrompt);
+
+                    const reportMsg: Message = {
+                        id: (Date.now() + 2).toString(),
+                        role: "ai",
+                        content: finalReport,
+                        timestamp: new Date(),
+                    };
+                    setMessages((prev) => [...prev, reportMsg]);
+
+                    setInterviewState(prev => ({
+                        ...prev,
+                        questionsAndAnswers: updatedQAs,
+                        showFinalReport: true
+                    }));
+
+                    // Speak the summary
+                    setTimeout(() => speak(finalReport), 500);
+                }
+            } catch (error) {
+                console.error('Failed to process answer:', error);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        recognition.onerror = (event: any) => {
+            console.error('Speech recognition error:', event.error);
+        };
+
+        recognition.onend = () => {
+            setInterviewState(prev => ({ ...prev, isListening: false }));
+        };
+
+        recognition.start();
+    };
+
+    const handleMockInterview = async () => {
+        setActiveMode("interview");
+        setQuizState({ ...quizState, active: false });
+
+        setIsLoading(true);
+        try {
+            // Generate ALL 5 questions at once to avoid rate limits
+            const prompt = `You are conducting a mock interview for a ${resumeData?.role} position. 
+Skills: ${resumeData?.skills.slice(0, 5).join(', ')}
+
+Generate exactly 5 interview questions (mix of technical and behavioral).
+Return ONLY the questions, numbered 1-5, one per line. No other text.
+
+Example format:
+1. [Question 1]
+2. [Question 2]
+3. [Question 3]
+4. [Question 4]
+5. [Question 5]`;
+
+            const { response } = await chatWithAI(prompt);
+            console.log("AI Response:", response);
+
+            // Parse the questions
+            const questionLines = response.split('\n').filter(line => line.trim().match(/^\d+[\.)]/));
+            console.log("Question lines found:", questionLines);
+            const questions = questionLines.map(line => line.replace(/^\d+[\.)]\ s*/, '').trim());
+            console.log("Parsed questions:", questions);
+
+            // Use fallback if not enough questions
+            const finalQuestions = questions.length >= 5 ? questions.slice(0, 5) : [
+                "Tell me about your experience as a " + (resumeData?.role || "developer") + ".",
+                "What are your key technical strengths?",
+                "Describe a challenging project you worked on.",
+                "How do you approach problem-solving?",
+                "What are your career goals?"
+            ];
+
+            const firstQuestion = finalQuestions[0];
+
+            // Set interview state with ALL questions
+            setInterviewState({
+                active: true,
+                isListening: false,
+                isSpeaking: false,
+                allQuestions: finalQuestions,
+                currentQuestion: firstQuestion,
+                questionNumber: 0,
+                totalQuestions: 5,
+                questionsAndAnswers: [],
+                showFinalReport: false
+            });
+
+            const aiMsg: Message = {
+                id: Date.now().toString(),
+                role: "ai",
+                content: firstQuestion,
+                timestamp: new Date(),
+            };
+            setMessages((prev) => [...prev, aiMsg]);
+
+            setTimeout(() => {
+                speak(firstQuestion);
+            }, 500);
+
+        } catch (error) {
+            console.error("Failed to start interview:", error);
+            alert("Failed to start interview. Please try again in a moment.");
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const stopInterview = () => {
+        window.speechSynthesis.cancel();
+        setInterviewState({
+            active: false,
+            isListening: false,
+            isSpeaking: false,
+            allQuestions: [],
+            currentQuestion: "",
+            questionNumber: 0,
+            totalQuestions: 5,
+            questionsAndAnswers: [],
+            showFinalReport: false
+        });
+        setActiveMode(null);
+    };
+
+    return (
+        <div className="flex h-[calc(100vh-4rem)] gap-6 p-4 md:p-6 max-w-7xl mx-auto">
+            <Card className="hidden md:flex flex-col w-80 h-full border-gray-200 dark:border-gray-700 shadow-lg">
+                <CardHeader className="pb-4 border-b border-gray-200 dark:border-gray-700">
+                    <CardTitle className="flex items-center gap-2 text-sm font-bold text-gray-700 dark:text-gray-300">
+                        <Lock className="h-4 w-4" />
+                        RESUME CONTEXT
+                    </CardTitle>
+                </CardHeader>
+                <CardContent className="flex-1 p-6 space-y-6">
+                    <div className="flex justify-center">
+                        <div className="w-20 h-20 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center">
+                            <User className="h-10 w-10 text-white" />
+                        </div>
+                    </div>
+                    {resumeData ? (
+                        <div className="space-y-4">
+                            <div>
+                                <p className="text-sm text-gray-500">Name:</p>
+                                <p className="text-base font-bold text-gray-900 dark:text-gray-100">{resumeData.fullName}</p>
+                            </div>
+                            <div>
+                                <p className="text-sm text-gray-500">Role:</p>
+                                <p className="text-base font-bold">{resumeData.role}</p>
+                            </div>
+                            <div>
+                                <p className="text-sm text-gray-500">Skills:</p>
+                                <p className="text-sm">{resumeData.skills.slice(0, 6).join(', ')}</p>
+                            </div>
+                            <div>
+                                <p className="text-sm text-gray-500">Experience:</p>
+                                <p className="text-base font-bold">{resumeData.experience}</p>
+                            </div>
+                        </div>
+                    ) : (
+                        <p className="text-sm text-center">Loading...</p>
+                    )}
+                </CardContent>
+            </Card>
+
+            <div className="flex-1 flex flex-col h-full">
+                <Card className="flex-1 flex flex-col shadow-lg">
+                    <CardHeader className="border-b pb-4">
+                        <CardTitle>AI COUNSELOR CHAT</CardTitle>
+                    </CardHeader>
+
+                    <ScrollArea className="flex-1 p-6">
+                        <div className="space-y-6">
+                            {messages.map((msg) => (
+                                <div key={msg.id} className={cn("flex items-start gap-4", msg.role === "user" ? "justify-end" : "justify-start")}>
+                                    {msg.role === "ai" && (
+                                        <Avatar className="h-10 w-10 bg-gradient-to-br from-purple-400 to-blue-500">
+                                            <AvatarFallback className="text-white"><Bot className="h-6 w-6" /></AvatarFallback>
+                                        </Avatar>
+                                    )}
+                                    <div className={cn("max-w-[75%] p-4 rounded-2xl", msg.role === "user" ? "bg-blue-500 text-white" : "bg-gray-100 dark:bg-gray-800")}>
+                                        {msg.role === "ai" ? formatAIResponse(msg.content) : msg.content}
+                                    </div>
+                                    {msg.role === "user" && (
+                                        <Avatar className="h-10 w-10 bg-blue-500">
+                                            <AvatarFallback className="text-white"><User className="h-6 w-6" /></AvatarFallback>
+                                        </Avatar>
+                                    )}
+                                </div>
+                            ))}
+                            {isLoading && (
+                                <div className="flex items-start gap-4">
+                                    <Avatar className="h-10 w-10 bg-gradient-to-br from-purple-400 to-blue-500">
+                                        <AvatarFallback className="text-white"><Bot className="h-6 w-6 animate-pulse" /></AvatarFallback>
+                                    </Avatar>
+                                    <div className="bg-gray-100 p-4 rounded-2xl flex items-center gap-2">
+                                        <Loader2 className="h-5 w-5 animate-spin" />
+                                        <span className="text-sm">Thinking...</span>
+                                    </div>
+                                </div>
+                            )}
+                            <div ref={endRef} />
+                        </div>
+                    </ScrollArea>
+
+                    <div className="p-4 border-t">
+                        <form onSubmit={(e) => { e.preventDefault(); handleSend(); }} className="flex gap-3">
+                            <Input value={input} onChange={(e) => setInput(e.target.value)} placeholder="Ask a question..." className="flex-1 rounded-full" disabled={isLoading} />
+                            <Button type="submit" size="icon" disabled={!input.trim() || isLoading} className="rounded-full bg-blue-500">
+                                <Send className="h-5 w-5" />
+                            </Button>
+                        </form>
+
+                        <div className="flex gap-3 mt-4">
+                            <Button onClick={handleGapAnalysis} variant={activeMode === "gap" ? "default" : "outline"} className="flex-1 rounded-full" disabled={isLoading}>
+                                <FileText className="h-4 w-4 mr-2" />
+                                Gap Analysis
+                            </Button>
+                            <Button onClick={handleTechQuizClick} variant={activeMode === "quiz" ? "default" : "outline"} className="flex-1 rounded-full" disabled={isLoading}>
+                                <Brain className="h-4 w-4 mr-2" />
+                                Tech Quiz
+                            </Button>
+                            <Button onClick={handleMockInterview} variant={activeMode === "interview" ? "default" : "outline"} className="flex-1 rounded-full" disabled={isLoading}>
+                                <MessageCircle className="h-4 w-4 mr-2" />
+                                Mock Interview
+                            </Button>
+                        </div>
+
+                        {showSkillDropdown && (
+                            <div className="mt-4 p-4 bg-white dark:bg-gray-800 rounded-lg border-2 border-blue-300">
+                                <h3 className="font-bold mb-3">Select a Skill</h3>
+                                <div className="grid grid-cols-2 gap-4 max-h-64 overflow-y-auto">
+                                    <div>
+                                        <h4 className="font-semibold text-sm mb-2">Frontend</h4>
+                                        {FRONTEND_SKILLS.map(skill => (
+                                            <Button key={skill} onClick={() => startQuizWithSkill(skill)} variant="outline" className="w-full justify-start text-sm mb-2">
+                                                {skill}
+                                            </Button>
+                                        ))}
+                                    </div>
+                                    <div>
+                                        <h4 className="font-semibold text-sm mb-2">Backend</h4>
+                                        {BACKEND_SKILLS.map(skill => (
+                                            <Button key={skill} onClick={() => startQuizWithSkill(skill)} variant="outline" className="w-full justify-start text-sm mb-2">
+                                                {skill}
+                                            </Button>
+                                        ))}
+                                    </div>
+                                </div>
+                                <Button onClick={() => setShowSkillDropdown(false)} variant="ghost" className="w-full mt-4">Cancel</Button>
+                            </div>
+                        )}
+
+                        {quizState.active && !quizState.showResults && quizState.questions.length > 0 && (
+                            <div className="mt-4 p-6 bg-gradient-to-br from-blue-50 to-purple-50 dark:from-gray-800 dark:to-gray-900 rounded-lg border-2 border-blue-400">
+                                <div className="flex justify-between items-center mb-4">
+                                    <h3 className="font-bold text-xl">{quizState.selectedSkill} Quiz</h3>
+                                    <span className="text-sm font-semibold bg-blue-500 text-white px-3 py-1 rounded-full">
+                                        Q {quizState.currentQuestion + 1}/{quizState.questions.length}
+                                    </span>
+                                </div>
+                                <div className="w-full bg-gray-200 rounded-full h-2 mb-6">
+                                    <div className="bg-blue-500 h-2 rounded-full" style={{ width: `${((quizState.currentQuestion + 1) / quizState.questions.length) * 100}%` }} />
+                                </div>
+                                <div className="bg-white dark:bg-gray-800 p-6 rounded-lg mb-6">
+                                    <h4 className="text-lg font-bold mb-4">{quizState.questions[quizState.currentQuestion]?.question}</h4>
+                                    <RadioGroup value={quizState.userAnswers[quizState.currentQuestion]?.toString() || ""} onValueChange={(v) => handleAnswerSelect(parseInt(v))}>
+                                        <div className="space-y-3">
+                                            {quizState.questions[quizState.currentQuestion]?.options.map((option, idx) => (
+                                                <div key={idx} className="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-50 cursor-pointer">
+                                                    <RadioGroupItem value={idx.toString()} id={`opt-${idx}`} />
+                                                    <Label htmlFor={`opt-${idx}`} className="flex-1 cursor-pointer">{option}</Label>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </RadioGroup>
+                                </div>
+                                <div className="flex justify-between gap-3">
+                                    <Button onClick={handlePreviousQuestion} disabled={quizState.currentQuestion === 0} variant="outline">Previous</Button>
+                                    <div className="flex gap-3">
+                                        {quizState.currentQuestion < quizState.questions.length - 1 ? (
+                                            <Button onClick={handleNextQuestion} disabled={quizState.userAnswers[quizState.currentQuestion] === null} className="bg-blue-500">Next</Button>
+                                        ) : (
+                                            <Button onClick={handleSubmitQuiz} disabled={quizState.userAnswers.some(a => a === null)} className="bg-green-500">Submit</Button>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {quizState.showResults && (
+                            <div className="mt-4 p-6 bg-gradient-to-br from-green-50 to-blue-50 rounded-lg border-2 border-green-400">
+                                <h3 className="font-bold text-2xl text-center mb-4">Quiz Results</h3>
+                                <div className="text-center mb-6">
+                                    <div className="text-6xl font-bold text-green-600">{quizState.score.toFixed(0)}%</div>
+                                    <p className="text-lg">You scored {quizState.questions.filter((q, i) => quizState.userAnswers[i] === q.correctAnswer).length} out of {quizState.questions.length}</p>
+                                </div>
+                                <div className="space-y-4 mb-6">
+                                    {quizState.questions.map((q, idx) => {
+                                        const correct = quizState.userAnswers[idx] === q.correctAnswer;
+                                        return (
+                                            <div key={idx} className={cn("p-4 rounded-lg border-2", correct ? "bg-green-50 border-green-300" : "bg-red-50 border-red-300")}>
+                                                <p className="font-semibold mb-2">Q{idx + 1}: {q.question}</p>
+                                                <p className="text-sm">Your: <span className={correct ? "text-green-600 font-bold" : "text-red-600 font-bold"}>{q.options[quizState.userAnswers[idx] || 0]}</span></p>
+                                                {!correct && <p className="text-sm text-green-600 font-semibold">Correct: {q.options[q.correctAnswer]}</p>}
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                                <Button onClick={resetQuiz} className="w-full bg-blue-500">Take Another Quiz</Button>
+                            </div>
+                        )}
+
+                        {interviewState.active && (
+                            <div className="mt-4 p-8 bg-gradient-to-br from-purple-100 via-blue-100 to-pink-100 dark:from-gray-800 dark:to-gray-900 rounded-lg border-2 border-purple-400 shadow-2xl">
+                                <div className="text-center mb-6">
+                                    <div className="relative inline-block">
+                                        <Avatar className={cn(
+                                            "h-32 w-32 bg-gradient-to-br from-purple-500 to-blue-600 shadow-2xl mx-auto mb-4 transition-all",
+                                            interviewState.isSpeaking && "animate-pulse ring-4 ring-purple-400"
+                                        )}>
+                                            <AvatarFallback className="text-white">
+                                                <Bot className="h-16 w-16" />
+                                            </AvatarFallback>
+                                        </Avatar>
+                                        {interviewState.isSpeaking && (
+                                            <Volume2 className="absolute top-0 right-0 h-8 w-8 text-purple-600 animate-bounce" />
+                                        )}
+                                    </div>
+                                    <h3 className="font-bold text-2xl mb-2">Mock Interview in Progress</h3>
+                                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                                        Question {interviewState.questionNumber + 1} of {interviewState.totalQuestions}
+                                    </p>
+                                </div>
+
+                                {interviewState.currentQuestion && (
+                                    <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg mb-6">
+                                        <h4 className="font-bold text-lg mb-2 text-purple-700 dark:text-purple-300">Current Question:</h4>
+                                        <p className="text-gray-800 dark:text-gray-200 text-lg leading-relaxed">
+                                            {interviewState.currentQuestion}
+                                        </p>
+                                    </div>
+                                )}
+
+                                <div className="flex flex-col gap-4">
+                                    <Button
+                                        onClick={startVoiceRecognition}
+                                        disabled={interviewState.isListening || interviewState.isSpeaking || isLoading}
+                                        className={cn(
+                                            "w-full py-6 text-lg font-bold rounded-full transition-all",
+                                            interviewState.isListening
+                                                ? "bg-red-500 hover:bg-red-600 animate-pulse"
+                                                : "bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
+                                        )}
+                                    >
+                                        {interviewState.isListening ? (
+                                            <>
+                                                <MicOff className="h-6 w-6 mr-2" />
+                                                Listening... Speak Your Answer
+                                            </>
+                                        ) : (
+                                            <>
+                                                <Mic className="h-6 w-6 mr-2" />
+                                                🎤 Answer Question {interviewState.questionNumber + 1}
+                                            </>
+                                        )}
+                                    </Button>
+
+                                    <div className="grid grid-cols-2 gap-3">
+                                        <Button
+                                            onClick={stopInterview}
+                                            variant="outline"
+                                            className="border-2 border-red-400 text-red-600 hover:bg-red-50"
+                                        >
+                                            Stop Interview
+                                        </Button>
+                                        <Button
+                                            onClick={() => speak(interviewState.currentQuestion)}
+                                            variant="outline"
+                                            disabled={!interviewState.currentQuestion || interviewState.isSpeaking}
+                                            className="border-2 border-purple-400"
+                                        >
+                                            <Volume2 className="h-4 w-4 mr-2" />
+                                            Repeat Question
+                                        </Button>
+                                    </div>
+
+                                    {interviewState.isListening && (
+                                        <div className="bg-red-100 dark:bg-red-900/30 p-4 rounded-lg flex items-center justify-center gap-3">
+                                            <div className="flex gap-1">
+                                                <span className="w-2 h-8 bg-red-500 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></span>
+                                                <span className="w-2 h-10 bg-red-500 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></span>
+                                                <span className="w-2 h-12 bg-red-500 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></span>
+                                                <span className="w-2 h-10 bg-red-500 rounded-full animate-bounce" style={{ animationDelay: '450ms' }}></span>
+                                                <span className="w-2 h-8 bg-red-500 rounded-full animate-bounce" style={{ animationDelay: '600ms' }}></span>
+                                            </div>
+                                            <p className="font-bold text-red-700 dark:text-red-300">Recording your answer...</p>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                </Card>
+            </div>
+        </div>
+    );
+}

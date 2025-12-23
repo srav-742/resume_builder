@@ -1,0 +1,442 @@
+/* Counselling Results Styles */
+
+.counselling-results {
+    width: 100%;
+    min-height: 100vh;
+    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    padding: 2rem;
+}
+
+.results-header {
+    max-width: 1200px;
+    margin: 0 auto 2rem;
+    background: white;
+    border-radius: 20px;
+    padding: 2rem;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+}
+
+.header-content h1 {
+    font-size: 2.5rem;
+    font-weight: 800;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 0.5rem;
+}
+
+.header-content p {
+    font-size: 1.1rem;
+    color: #718096;
+}
+
+.view-toggle {
+    display: flex;
+    gap: 1rem;
+    margin-top: 1.5rem;
+}
+
+.toggle-btn {
+    flex: 1;
+    padding: 0.875rem 2rem;
+    border: 2px solid #e2e8f0;
+    border-radius: 12px;
+    background: white;
+    font-size: 1rem;
+    font-weight: 600;
+    color: #4a5568;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.toggle-btn.active {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-color: transparent;
+    box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+}
+
+.toggle-btn:hover:not(.active) {
+    border-color: #cbd5e0;
+    background: #f7fafc;
+}
+
+/* Results Content */
+.results-content {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+/* Structured Analysis */
+.structured-analysis {
+    display: grid;
+    gap: 2rem;
+}
+
+.analysis-card {
+    background: white;
+    border-radius: 20px;
+    padding: 2rem;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    animation: fadeInUp 0.5s ease-out;
+    border-left: 6px solid #667eea;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.card-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.card-icon {
+    width: 32px;
+    height: 32px;
+    color: #667eea;
+}
+
+.card-header h3 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #2d3748;
+}
+
+.card-content {
+    color: #4a5568;
+    line-height: 1.8;
+    font-size: 1.05rem;
+}
+
+/* Strengths Card */
+.strengths-card {
+    border-left-color: #48bb78;
+}
+
+.strengths-card .card-icon {
+    color: #48bb78;
+}
+
+.strength-list {
+    list-style: none;
+    padding: 0;
+    display: grid;
+    gap: 1rem;
+}
+
+.strength-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    padding: 1rem;
+    background: linear-gradient(135deg, #f0fff4 0%, #c6f6d5 50%, #f0fff4 100%);
+    border-radius: 12px;
+    border-left: 4px solid #48bb78;
+}
+
+.check-icon {
+    color: #48bb78;
+    flex-shrink: 0;
+    margin-top: 2px;
+}
+
+/* Gaps Card */
+.gaps-card {
+    border-left-color: #ed8936;
+}
+
+.gaps-card .card-icon {
+    color: #ed8936;
+}
+
+.gap-list {
+    list-style: none;
+    padding: 0;
+    display: grid;
+    gap: 1rem;
+}
+
+.gap-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    padding: 1rem;
+    background: linear-gradient(135deg, #fffaf0 0%, #feebc8 50%, #fffaf0 100%);
+    border-radius: 12px;
+    border-left: 4px solid #ed8936;
+}
+
+.priority-badge {
+    background: #ed8936;
+    color: white;
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.875rem;
+    font-weight: 700;
+    flex-shrink: 0;
+}
+
+/* Roadmap Card */
+.roadmap-card {
+    border-left-color: #4299e1;
+}
+
+.roadmap-card .card-icon {
+    color: #4299e1;
+}
+
+.roadmap-section {
+    margin-bottom: 2rem;
+}
+
+.roadmap-section:last-child {
+    margin-bottom: 0;
+}
+
+.roadmap-section h4 {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: #2d3748;
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid #e2e8f0;
+}
+
+.roadmap-section ul {
+    list-style: none;
+    padding: 0;
+}
+
+.roadmap-section li {
+    padding: 0.75rem 0 0.75rem 2rem;
+    position: relative;
+    color: #4a5568;
+    line-height: 1.6;
+}
+
+.roadmap-section li::before {
+    content: "→";
+    position: absolute;
+    left: 0;
+    color: #4299e1;
+    font-weight: 700;
+}
+
+/* Tips Card */
+.tips-card {
+    border-left-color: #ecc94b;
+}
+
+.tips-card .card-icon {
+    color: #ecc94b;
+}
+
+.tips-list {
+    list-style: none;
+    padding: 0;
+    display: grid;
+    gap: 1rem;
+}
+
+.tip-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    padding: 1rem;
+    background: linear-gradient(135deg, #fffff0 0%, #fefcbf 50%, #fffff0 100%);
+    border-radius: 12px;
+    border-left: 4px solid #ecc94b;
+}
+
+.tip-icon {
+    color: #ecc94b;
+    flex-shrink: 0;
+    margin-top: 2px;
+}
+
+/* Strategy Card */
+.strategy-card {
+    border-left-color: #9f7aea;
+}
+
+.strategy-card .card-icon {
+    color: #9f7aea;
+}
+
+/* Motivation Card */
+.motivation-card {
+    border-left-color: #f56565;
+}
+
+.motivation-card .card-icon {
+    color: #f56565;
+}
+
+.motivation-card .card-content {
+    background: linear-gradient(135deg, #fff5f5 0%, #fed7d7 50%, #fff5f5 100%);
+    padding: 1.5rem;
+    border-radius: 12px;
+    font-size: 1.1rem;
+    font-style: italic;
+    color: #2d3748;
+}
+
+/* Full Report Container */
+.full-report-container {
+    background: white;
+    border-radius: 20px;
+    padding: 3rem;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+}
+
+.markdown-content {
+    line-height: 1.8;
+    color: #2d3748;
+}
+
+.report-text {
+    white-space: pre-wrap;
+    font-family: inherit;
+    font-size: 1.05rem;
+    background: transparent;
+    border: none;
+    padding: 0;
+}
+
+/* Post-Counselling CTA */
+.post-counselling-cta {
+    max-width: 1200px;
+    margin: 3rem auto;
+    padding: 3rem;
+    background: white;
+    border-radius: 24px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+}
+
+.post-counselling-cta h2 {
+    text-align: center;
+    font-size: 2rem;
+    font-weight: 700;
+    color: #2d3748;
+    margin-bottom: 2rem;
+}
+
+.cta-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.5rem;
+}
+
+.cta-card {
+    background: linear-gradient(135deg, #f6f8fb 0%, #ffffff 100%);
+    border: 2px solid #e2e8f0;
+    border-radius: 16px;
+    padding: 2rem;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.cta-card:hover {
+    border-color: #667eea;
+    transform: translateY(-8px);
+    box-shadow: 0 16px 40px rgba(102, 126, 234, 0.2);
+}
+
+.cta-icon {
+    width: 60px;
+    height: 60px;
+    margin: 0 auto 1rem;
+    color: #667eea;
+    transition: transform 0.3s ease;
+}
+
+.cta-card:hover .cta-icon {
+    transform: scale(1.1);
+}
+
+.cta-card h3 {
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: #2d3748;
+    margin-bottom: 0.5rem;
+}
+
+.cta-card p {
+    font-size: 1rem;
+    color: #718096;
+}
+
+/* Download Section */
+.download-section {
+    max-width: 1200px;
+    margin: 2rem auto 0;
+    text-align: center;
+}
+
+.download-btn {
+    padding: 1rem 3rem;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.75rem;
+    transition: all 0.3s ease;
+}
+
+.download-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .counselling-results {
+        padding: 1rem;
+    }
+
+    .results-header {
+        padding: 1.5rem;
+    }
+
+    .header-content h1 {
+        font-size: 1.75rem;
+    }
+
+    .view-toggle {
+        flex-direction: column;
+    }
+
+    .analysis-card {
+        padding: 1.5rem;
+    }
+
+    .card-header h3 {
+        font-size: 1.25rem;
+    }
+
+    .cta-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .post-counselling-cta {
+        padding: 2rem 1.5rem;
+    }
+}

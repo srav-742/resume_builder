@@ -5,7 +5,7 @@ import { Metadata } from 'next';
 
 export const metadata: Metadata = {
     title: 'AI Career Counsellor | Resume Builder',
-    description: 'Get expert career advice and resume tips from our AI counsellor.',
+    description: 'Get personalized career guidance and AI-powered resume assistance.',
 };
 
 export default function AICounsellorPage() {

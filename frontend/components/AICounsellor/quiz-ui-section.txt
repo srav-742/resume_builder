@@ -1,0 +1,190 @@
+                        </div>
+
+                        {/* Skill Selection Dropdown Modal */}
+                        {showSkillDropdown && (
+                            <div className="mt-4 p-4 bg-white dark:bg-gray-800 rounded-lg border-2 border-blue-300 shadow-lg">
+                                <h3 className="font-bold text-lg mb-3">Select a Skill for Quiz</h3>
+                                
+                                <div className="grid grid-cols-2 gap-4 max-h-96 overflow-y-auto">
+                                    <div>
+                                        <h4 className="font-semibold text-sm text-gray-600 dark:text-gray-400 mb-2">Frontend</h4>
+                                        <div className="space-y-2">
+                                            {FRONTEND_SKILLS.map(skill => (
+                                                <Button
+                                                    key={skill}
+                                                    onClick={() => startQuizWithSkill(skill)}
+                                                    variant="outline"
+                                                    className="w-full justify-start text-sm hover:bg-blue-50"
+                                                >
+                                                    {skill}
+                                                </Button>
+                                            ))}
+                                        </div>
+                                    </div>
+                                    
+                                    <div>
+                                        <h4 className="font-semibold text-sm text-gray-600 dark:text-gray-400 mb-2">Backend</h4>
+                                        <div className="space-y-2">
+                                            {BACKEND_SKILLS.map(skill => (
+                                                <Button
+                                                    key={skill}
+                                                    onClick={() => startQuizWithSkill(skill)}
+                                                    variant="outline"
+                                                    className="w-full justify-start text-sm hover:bg-green-50"
+                                                >
+                                                    {skill}
+                                                </Button>
+                                            ))}
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <Button
+                                    onClick={() => setShowSkillDropdown(false)}
+                                    variant="ghost"
+                                    className="w-full mt-4"
+                                >
+                                    Cancel
+                                </Button>
+                            </div>
+                        )}
+
+                        {/* Quiz Interface */}
+                        {quizState.active && !quizState.showResults && quizState.questions.length > 0 && (
+                            <div className="mt-4 p-6 bg-gradient-to-br from-blue-50 to-purple-50 dark:from-gray-800 dark:to-gray-900 rounded-lg border-2 border-blue-400">
+                                <div className="flex justify-between items-center mb-4">
+                                    <h3 className="font-bold text-xl">{quizState.selectedSkill} Quiz</h3>
+                                    <span className="text-sm font-semibold bg-blue-500 text-white px-3 py-1 rounded-full">
+                                        Question {quizState.currentQuestion + 1} of {quizState.questions.length}
+                                    </span>
+                                </div>
+
+                                {/* Progress Bar */}
+                                <div className="w-full bg-gray-200 rounded-full h-2 mb-6">
+                                    <div 
+                                        className="bg-blue-500 h-2 rounded-full transition-all"
+                                        style={{ width: `${((quizState.currentQuestion + 1) / quizState.questions.length) * 100}%` }}
+                                    />
+                                </div>
+
+                                {/* Question */}
+                                <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md mb-6">
+                                    <h4 className="text-lg font-bold mb-4">
+                                        {quizState.questions[quizState.currentQuestion]?.question}
+                                    </h4>
+
+                                    {/* Options */}
+                                    <RadioGroup 
+                                        value={quizState.userAnswers[quizState.currentQuestion]?.toString() || ""}
+                                        onValueChange={(value) => handleAnswerSelect(parseInt(value))}
+                                    >
+                                        <div className="space-y-3">
+                                            {quizState.questions[quizState.currentQuestion]?.options.map((option, idx) => (
+                                                <div key={idx} className="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer border-2 border-transparent hover:border-blue-300">
+                                                    <RadioGroupItem value={idx.toString()} id={`option-${idx}`} />
+                                                    <Label htmlFor={`option-${idx}`} className="flex-1 cursor-pointer">
+                                                        {option}
+                                                    </Label>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </RadioGroup>
+                                </div>
+
+                                {/* Navigation Buttons */}
+                                <div className="flex justify-between gap-3">
+                                    <Button
+                                        onClick={handlePreviousQuestion}
+                                        disabled={quizState.currentQuestion === 0}
+                                        variant="outline"
+                                    >
+                                        Previous
+                                    </Button>
+
+                                    <div className="flex gap-3">
+                                        {quizState.currentQuestion < quizState.questions.length - 1 ? (
+                                            <Button
+                                                onClick={handleNextQuestion}
+                                                disabled={quizState.userAnswers[quizState.currentQuestion] === null}
+                                                className="bg-blue-500 hover:bg-blue-600"
+                                            >
+                                                Next Question
+                                            </Button>
+                                        ) : (
+                                            <Button
+                                                onClick={handleSubmitQuiz}
+                                                disabled={quizState.userAnswers.some(a => a === null)}
+                                                className="bg-green-500 hover:bg-green-600"
+                                            >
+                                                Submit Quiz
+                                            </Button>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Quiz Results */}
+                        {quizState.showResults && (
+                            <div className="mt-4 p-6 bg-gradient-to-br from-green-50 to-blue-50 dark:from-gray-800 dark:to-gray-900 rounded-lg border-2 border-green-400">
+                                <h3 className="font-bold text-2xl mb-4 text-center">Quiz Results</h3>
+                                
+                                <div className="text-center mb-6">
+                                    <div className="text-6xl font-bold text-green-600 mb-2">
+                                        {quizState.score.toFixed(0)}%
+                                    </div>
+                                    <p className="text-lg text-gray-700 dark:text-gray-300">
+                                        You scored {quizState.questions.filter((q, idx) => quizState.userAnswers[idx] === q.correctAnswer).length} out of {quizState.questions.length}
+                                    </p>
+                                </div>
+
+                                {/* Performance Feedback */}
+                                <div className="bg-white dark:bg-gray-800 p-4 rounded-lg mb-6">
+                                    <h4 className="font-bold mb-2">Performance:</h4>
+                                    <p className="text-gray-700 dark:text-gray-300">
+                                        {quizState.score >= 80 && "🎉 Excellent! You have a strong understanding of " + quizState.selectedSkill}
+                                        {quizState.score >= 60 && quizState.score < 80 && "👍 Good job! You have a solid grasp of " + quizState.selectedSkill}
+                                        {quizState.score >= 40 && quizState.score < 60 && "📚 Not bad, but there's room for improvement in " + quizState.selectedSkill}
+                                        {quizState.score < 40 && "💪 Keep learning! " + quizState.selectedSkill + " requires more practice"}
+                                    </p>
+                                </div>
+
+                                {/* Detailed Answers */}
+                                <div className="space-y-4 mb-6">
+                                    {quizState.questions.map((q, idx) => {
+                                        const isCorrect = quizState.userAnswers[idx] === q.correctAnswer;
+                                        return (
+                                            <div key={idx} className={cn(
+                                                "p-4 rounded-lg border-2",
+                                                isCorrect ? "bg-green-50 border-green-300" : "bg-red-50 border-red-300"
+                                            )}>
+                                                <p className="font-semibold mb-2">Question {idx + 1}: {q.question}</p>
+                                                <p className="text-sm">
+                                                    Your answer: <span className={isCorrect ? "text-green-600 font-bold" : "text-red-600 font-bold"}>
+                                                        {q.options[quizState.userAnswers[idx] || 0]}
+                                                    </span>
+                                                </p>
+                                                {!isCorrect && (
+                                                    <p className="text-sm text-green-600 font-semibold">
+                                                        Correct answer: {q.options[q.correctAnswer]}
+                                                    </p>
+                                                )}
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+
+                                <Button
+                                    onClick={resetQuiz}
+                                    className="w-full bg-blue-500 hover:bg-blue-600"
+                                >
+                                    Take Another Quiz
+                                </Button>
+                            </div>
+                        )}
+                    </div>
+                </Card>
+            </div>
+        </div>
+    );
+}

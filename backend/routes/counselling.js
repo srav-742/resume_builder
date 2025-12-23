@@ -44,7 +44,8 @@ function ensureModel(preferredModel = "gemini-1.5-flash") {
 
 // Function to generate content with automatic fallback on quota errors
 async function generateWithFallback(prompt) {
-    const modelsToTry = ["gemini-1.5-flash", "gemini-pro", "gemini-1.5-pro"];
+    // Try stable models in order of preference
+    const modelsToTry = ["gemini-1.5-flash-latest", "gemini-1.5-flash", "gemini-pro"];
     let lastError = null;
 
     for (const modelName of modelsToTry) {
@@ -69,12 +70,15 @@ async function generateWithFallback(prompt) {
             console.error(`❌ Failed with ${modelName}:`, error.message);
             lastError = error;
 
-            // If it's not a quota error, stop trying
-            if (error.status !== 429) {
+            // Log specific error details
+            if (error.status === 404) {
+                console.log(`⚠️ Model ${modelName} not found, trying next...`);
+            } else if (error.status !== 429) {
+                // If it's not a quota or not-found error, stop trying
                 throw error;
+            } else {
+                console.log(`⚠️ Quota exceeded for ${modelName}, trying next model...`);
             }
-
-            console.log(`⚠️ Quota exceeded for ${modelName}, trying next model...`);
             continue;
         }
     }

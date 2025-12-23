@@ -1,0 +1,43 @@
+    const handleMockInterview = async () => {
+        setActiveMode("interview");
+        setQuizState({ ...quizState, active: false });
+        
+        // Generate questions CLIENT-SIDE - NO API CALLS!
+        const role = resumeData?.role || "developer";
+        const skills = resumeData?.skills || [];
+        const primarySkill = skills[0] || "programming";
+        
+        const questions = [
+            `Tell me about your experience as a ${role}. What projects have you worked on?`,
+            `What are your strongest technical skills in ${primarySkill} and how have you applied them?`,
+            `Describe a challenging bug or technical problem you encountered. How did you solve it?`,
+            `How do you stay updated with new technologies and industry trends?`,
+            `Why are you interested in this ${role} position and what are your career goals?`
+        ];
+
+        const firstQuestion = questions[0];
+
+        setInterviewState({ 
+            active: true, 
+            isListening: false, 
+            isSpeaking: false,
+            allQuestions: questions,
+            currentQuestion: firstQuestion,
+            questionNumber: 0,
+            totalQuestions: 5,
+            questionsAndAnswers: [],
+            showFinalReport: false
+        });
+
+        const aiMsg: Message = {
+            id: Date.now().toString(),
+            role: "ai",
+            content: firstQuestion,
+            timestamp: new Date(),
+        };
+        setMessages((prev) => [...prev, aiMsg]);
+
+        setTimeout(() => {
+            speak(firstQuestion);
+        }, 500);
+    };
