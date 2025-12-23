@@ -44,19 +44,27 @@ function ensureModel(preferredModel = "gemini-2.5-flash-lite") {
 
 // Function to generate content with automatic fallback on quota errors
 async function generateWithFallback(prompt) {
-    // Only use the working model - gemini-2.5-flash-lite
-    const modelsToTry = ["gemini-2.5-flash-lite"];
+    // try all available working models
+    const modelsToTry = [
+        "gemini-2.5-flash-lite",
+        "gemini-2.0-flash",
+        "gemini-1.5-flash",
+        "gemini-1.5-flash-latest",
+        "gemini-pro"
+    ];
+
     let lastError = null;
 
     for (const modelName of modelsToTry) {
         try {
             console.log(`🔄 Attempting to use model: ${modelName}`);
 
-            // Reinitialize model with the current attempt
-            if (!genAI) {
-                genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+            if (!process.env.GEMINI_API_KEY) {
+                throw new Error("GEMINI_API_KEY is missing");
             }
-            const attemptModel = genAI.getGenerativeModel({ model: modelName });
+
+            const tempGenAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+            const attemptModel = tempGenAI.getGenerativeModel({ model: modelName });
 
             const result = await attemptModel.generateContent(prompt);
             console.log(`✅ Successfully generated content with ${modelName}`);
@@ -70,12 +78,13 @@ async function generateWithFallback(prompt) {
             console.error(`❌ Failed with ${modelName}:`, error.message);
             lastError = error;
 
-            // Log specific error details
             if (error.status === 404) {
                 console.log(`⚠️ Model ${modelName} not found, trying next...`);
+            } else if (error.status === 403 && error.message.includes('leaked')) {
+                console.log(`⚠️ API Key for ${modelName} reported as leaked. This is a critical error.`);
+                // If it's leaked, it's probably leaked for all models, but we'll try one more just in case
             } else if (error.status !== 429) {
-                // If it's not a quota or not-found error, stop trying
-                throw error;
+                console.log(`⚠️ Non-quota error with ${modelName}, trying next...`);
             } else {
                 console.log(`⚠️ Quota exceeded for ${modelName}, trying next model...`);
             }
@@ -83,8 +92,7 @@ async function generateWithFallback(prompt) {
         }
     }
 
-    // If all models failed, throw the last error
-    throw lastError || new Error("All models failed");
+    throw lastError || new Error("All models failed to generate content");
 }
 
 
@@ -517,23 +525,57 @@ YOUR ANALYSIS:
         };
 
         // Simple parsing logic
+        console.log('🔍 Beginning analysis parsing...');
         let buffer = '';
         for (const line of lines) {
-            if (line.includes('CURRENT CAREER POSITION')) currentSection = 'summary';
-            else if (line.includes('RESUME VS CAREER GOAL')) currentSection = 'alignment';
-            else if (line.includes('SKILL STRENGTHS')) currentSection = 'strengths';
-            else if (line.includes('SKILL GAPS')) currentSection = 'gaps';
-            else if (line.includes('0-3 Months')) currentSection = 'immediate';
-            else if (line.includes('3-6 Months')) currentSection = 'shortTerm';
-            else if (line.includes('6-12 Months')) currentSection = 'mediumTerm';
-            else if (line.includes('RESUME IMPROVEMENT')) currentSection = 'resume';
-            else if (line.includes('JOB APPLICATION STRATEGY')) currentSection = 'strategy';
-            else if (line.includes('CONFIDENCE & MOTIVATION')) currentSection = 'confidence';
+            const upperLine = line.toUpperCase();
+
+            if (upperLine.includes('CURRENT CAREER POSITION')) {
+                currentSection = 'summary';
+                buffer = '';
+            }
+            else if (upperLine.includes('RESUME VS CAREER GOAL')) {
+                currentSection = 'alignment';
+                buffer = '';
+            }
+            else if (upperLine.includes('SKILL STRENGTHS')) {
+                currentSection = 'strengths';
+                buffer = '';
+            }
+            else if (upperLine.includes('SKILL GAPS')) {
+                currentSection = 'gaps';
+                buffer = '';
+            }
+            else if (upperLine.includes('0-3 MONTHS') || upperLine.includes('IMMEDIATE ACTIONS')) {
+                currentSection = 'immediate';
+                buffer = '';
+            }
+            else if (upperLine.includes('3-6 MONTHS') || upperLine.includes('SHORT-TERM')) {
+                currentSection = 'shortTerm';
+                buffer = '';
+            }
+            else if (upperLine.includes('6-12 MONTHS') || upperLine.includes('MEDIUM-TERM')) {
+                currentSection = 'mediumTerm';
+                buffer = '';
+            }
+            else if (upperLine.includes('RESUME IMPROVEMENT')) {
+                currentSection = 'resume';
+                buffer = '';
+            }
+            else if (upperLine.includes('JOB APPLICATION STRATEGY')) {
+                currentSection = 'strategy';
+                buffer = '';
+            }
+            else if (upperLine.includes('CONFIDENCE & MOTIVATION') || upperLine.includes('CONFIDENCE GUIDANCE')) {
+                currentSection = 'confidence';
+                buffer = '';
+            }
 
             if (currentSection) {
-                if (line.trim().startsWith('-') || line.trim().startsWith('*')) {
-                    const item = line.replace(/^[-*]\s*/, '').trim();
-                    if (item) {
+                const trimmedLine = line.trim();
+                if (trimmedLine.startsWith('-') || trimmedLine.startsWith('*') || /^\d+\./.test(trimmedLine)) {
+                    const item = trimmedLine.replace(/^([-*]|\d+\.)\s*/, '').trim();
+                    if (item && !item.toUpperCase().includes(currentSection.toUpperCase())) { // Avoid adding headers as items
                         if (currentSection === 'strengths') analysis.skillStrengths.push(item);
                         else if (currentSection === 'gaps') analysis.skillGaps.push(item);
                         else if (currentSection === 'immediate') analysis.learningRoadmap.immediate.push(item);
@@ -541,12 +583,12 @@ YOUR ANALYSIS:
                         else if (currentSection === 'mediumTerm') analysis.learningRoadmap.mediumTerm.push(item);
                         else if (currentSection === 'resume') analysis.resumeImprovementTips.push(item);
                     }
-                } else if (line.trim() && !line.startsWith('#')) {
+                } else if (trimmedLine && !trimmedLine.startsWith('#')) {
                     buffer += line + '\n';
-                    if (currentSection === 'summary') analysis.careerPositionSummary = buffer;
-                    else if (currentSection === 'alignment') analysis.resumeGoalAlignment = buffer;
-                    else if (currentSection === 'strategy') analysis.jobApplicationStrategy = buffer;
-                    else if (currentSection === 'confidence') analysis.confidenceGuidance = buffer;
+                    if (currentSection === 'summary') analysis.careerPositionSummary = buffer.trim();
+                    else if (currentSection === 'alignment') analysis.resumeGoalAlignment = buffer.trim();
+                    else if (currentSection === 'strategy') analysis.jobApplicationStrategy = buffer.trim();
+                    else if (currentSection === 'confidence') analysis.confidenceGuidance = buffer.trim();
                 }
             }
         }
