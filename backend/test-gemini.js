@@ -1,44 +1,63 @@
-// Quick test script to verify Gemini API works
+// Test Gemini API
+const dotenv = require("dotenv");
+dotenv.config();
+
 const { GoogleGenerativeAI } = require('@google/generative-ai');
-require('dotenv').config();
 
-async function testGeminiAPI() {
-    console.log('🧪 Testing Gemini API...\n');
+async function testGemini() {
+    console.log('========== GEMINI API TEST ==========');
+    console.log('API Key exists:', !!process.env.GEMINI_API_KEY);
+    console.log('API Key (first 10 chars):', process.env.GEMINI_API_KEY?.substring(0, 10));
+    console.log('=====================================\n');
 
-    // Check API key
     if (!process.env.GEMINI_API_KEY) {
-        console.error('❌ GEMINI_API_KEY not found in .env');
-        return;
+        console.error('❌ GEMINI_API_KEY not found in .env file');
+        process.exit(1);
     }
-    console.log('✅ API Key found:', process.env.GEMINI_API_KEY.substring(0, 20) + '...');
 
-    try {
-        // Initialize
-        const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash-latest" });
-        console.log('✅ Model initialized: gemini-1.5-flash-latest\n');
+    const modelsToTest = [
+        'gemini-1.5-flash-latest',
+        'gemini-1.5-flash',
+        'gemini-1.5-pro',
+        'gemini-pro'
+    ];
 
-        // Test generation
-        console.log('📝 Sending test prompt...');
-        const result = await model.generateContent("Say Hello World and confirm you are working.");
-        const response = result.response;
-        const text = response.text();
+    const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
-        console.log('\n✅ API Response:');
-        console.log('─'.repeat(50));
-        console.log(text);
-        console.log('─'.repeat(50));
-        console.log('\n🎉 Gemini API is working perfectly!');
+    for (const modelName of modelsToTest) {
+        try {
+            console.log(`\n🔄 Testing model: ${modelName}`);
+            const model = genAI.getGenerativeModel({ model: modelName });
 
-    } catch (error) {
-        console.error('\n❌ Error testing Gemini API:');
-        console.error('Error name:', error.name);
-        console.error('Error message:', error.message);
-        if (error.status) {
-            console.error('HTTP Status:', error.status);
+            const result = await model.generateContent('Say hello in one sentence.');
+            const text = result.response.text();
+
+            console.log(`✅ SUCCESS with ${modelName}`);
+            console.log(`Response: ${text.substring(0, 100)}...`);
+            console.log(`Response length: ${text.length} characters`);
+
+            // If successful, we can stop testing
+            console.log(`\n✅ GEMINI API IS WORKING! Use model: ${modelName}`);
+            break;
+
+        } catch (error) {
+            console.error(`❌ FAILED with ${modelName}`);
+            console.error(`Error message: ${error.message}`);
+
+            if (error.status) {
+                console.error(`HTTP Status: ${error.status}`);
+            }
+
+            if (error.errorDetails) {
+                console.error(`Error details:`, error.errorDetails);
+            }
         }
-        console.error('\nFull error:', error);
     }
+
+    console.log('\n========== TEST COMPLETE ==========');
 }
 
-testGeminiAPI();
+testGemini().catch(err => {
+    console.error('Fatal error:', err);
+    process.exit(1);
+});

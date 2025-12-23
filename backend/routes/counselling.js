@@ -8,12 +8,12 @@ const { GoogleGenerativeAI } = require('@google/generative-ai');
 // Initialize Gemini
 let model = null;
 let genAI = null;
-let currentModelName = "gemini-1.5-flash"; // Track which model we're using
+let currentModelName = "gemini-2.5-flash-lite"; // Track which model we're using - CORRECTED MODEL
 
 if (process.env.GEMINI_API_KEY) {
     try {
         genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-        // Use 'gemini-1.5-flash' - stable model with better quota limits
+        // Use 'gemini-2.5-flash-lite' - the ONLY working model as per API_KEY_ANALYSIS.md
         model = genAI.getGenerativeModel({ model: currentModelName });
         console.log(`✅ Gemini AI initialized for counselling (${currentModelName})`);
     } catch (err) {
@@ -25,7 +25,7 @@ if (process.env.GEMINI_API_KEY) {
 }
 
 // Lazy initialization function as fallback
-function ensureModel(preferredModel = "gemini-1.5-flash") {
+function ensureModel(preferredModel = "gemini-2.5-flash-lite") {
     if (!model && process.env.GEMINI_API_KEY) {
         try {
             if (!genAI) {
@@ -44,8 +44,8 @@ function ensureModel(preferredModel = "gemini-1.5-flash") {
 
 // Function to generate content with automatic fallback on quota errors
 async function generateWithFallback(prompt) {
-    // Try stable models in order of preference
-    const modelsToTry = ["gemini-1.5-flash-latest", "gemini-1.5-flash", "gemini-pro"];
+    // Only use the working model - gemini-2.5-flash-lite
+    const modelsToTry = ["gemini-2.5-flash-lite"];
     let lastError = null;
 
     for (const modelName of modelsToTry) {

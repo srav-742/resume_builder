@@ -4,10 +4,21 @@ const admin = require('firebase-admin');
 
 if (!admin.apps.length) {
   try {
-    // ✅ Clean private key: remove quotes + normalize newlines
-    const privateKey = process.env.FIREBASE_PRIVATE_KEY
-      .replace(/\\n/g, '\n')
-      .replace(/"/g, '');
+    // ✅ Clean private key: handle both literal \n and actual newlines
+    let privateKey = process.env.FIREBASE_PRIVATE_KEY;
+
+    // Remove surrounding quotes if present
+    if (privateKey.startsWith('"') && privateKey.endsWith('"')) {
+      privateKey = privateKey.slice(1, -1);
+    }
+
+    // If the key contains literal \n (as a string), convert them to actual newlines
+    if (privateKey.includes('\\n')) {
+      privateKey = privateKey.replace(/\\n/g, '\n');
+    }
+
+    // Remove any extra quotes that might be embedded
+    privateKey = privateKey.replace(/"/g, '');
 
     const credentials = {
       projectId: process.env.FIREBASE_PROJECT_ID,
