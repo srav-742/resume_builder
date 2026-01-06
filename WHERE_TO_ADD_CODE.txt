@@ -1,0 +1,107 @@
+=================================================================================
+                    VISUAL INTEGRATION GUIDE
+          Where to Add Code in ChatInterface.tsx
+=================================================================================
+
+PART 1: Handler Functions (After line ~1054)
+─────────────────────────────────────────────────────────────────
+
+Find this in ChatInterface.tsx:
+
+    const stopInterview = () => {
+        window.speechSynthesis.cancel();
+        setInterviewState({
+            active: false,
+            isListening: false,
+            isSpeaking: false,
+            allQuestions: [],
+            currentQuestion: "",
+            questionNumber: 0,
+            totalQuestions: 5,
+            questionsAndAnswers: [],
+            showFinalReport: false
+        });
+        setActiveMode(null);
+    };
+
+    // ⬇️⬇️⬇️ ADD ALL COUNSELLING HANDLERS HERE ⬇️⬇️⬇️
+    // Copy from COUNSELLING_HANDLERS_TO_ADD.tsx
+    
+    // ⬆️⬆️⬆️ END OF COUNSELLING HANDLERS ⬆️⬆️⬆️
+
+    // Information display functions (rest of code continues...)
+
+=================================================================================
+
+PART 2: Render Call (In main return statement, around line 1200-1900)
+───────────────────────────────────────────────────────────────────────
+
+Find the main return statement. It looks something like this:
+
+return (
+    <div className="fixed inset-0 flex flex-col h-screen bg-gray-50">
+        
+        {/* Welcome Screen */}
+        {showWelcomeScreen && !activeMode && (
+            <WelcomeScreen onSelectMode={handleModeSelection} userName={resumeData?.fullName} />
+        )}
+
+        {/* ⬇️⬇️⬇️ ADD THIS LINE HERE ⬇️⬇️⬇️ */}
+        {activeMode === 'career_counselling' && renderCounsellingFlow()}
+        {/* ⬆️⬆️⬆️ ADD THE LINE ABOVE  ⬆️⬆️⬆️ */}
+
+        {/* Resume Selector Modal */}
+        {showResumeSelector && (
+            <ResumeSelector
+                resumes={fetchedResumes}
+                onClose={() => setShowResumeSelector(false)}
+                onSelect={handleSelectResume}
+            />
+        )}
+        
+        {/* Rest of the UI continues... */}
+
+=================================================================================
+
+SUMMARY
+───────
+
+✅ Already Done:
+   - Imports added at top ✅
+   - State variables added ✅
+   - case "career_counselling" added to switch ✅
+   - WelcomeScreen updated ✅
+
+❌ Still Need to Add:
+   1. Handler functions (8 functions) - Copy from COUNSELLING_HANDLERS_TO_ADD.tsx
+   2. Render call (1 line) - Add in return statement
+
+=================================================================================
+
+STEP-BY-STEP PROCESS:
+
+1. Open: ChatInterface.tsx
+   
+2. Find: "const stopInterview = () => {"
+   
+3. Scroll down to the closing "}" of that function
+   
+4. Press Enter to create new line
+   
+5. Paste: All code from COUNSELLING_HANDLERS_TO_ADD.tsx
+   
+6. Save file
+   
+7. Find: "return (" (the main return statement - around line 1200+)
+   
+8. Find: "{showWelcomeScreen && !activeMode && ("
+   
+9. After the closing ")}" of that block, add new line
+   
+10. Paste: {activeMode === 'career_counselling' && renderCounsellingFlow()}
+   
+11. Save file
+   
+12. Done! Test it!
+
+=================================================================================

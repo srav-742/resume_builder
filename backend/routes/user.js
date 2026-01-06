@@ -7,17 +7,19 @@ const authenticate = require('../middleware/auth');
 // GET /api/user/profile → sync user from Firebase token
 router.get('/profile', authenticate, async (req, res) => {
   try {
+    const { role } = req.query;
     const { uid, email, name } = req.user;
 
-    // Find or create user (only set essential fields)
+    // Find or create user
     let user = await User.findOne({ firebaseUid: uid });
 
     if (!user) {
-      console.log(`Creating new user for UID: ${uid}`);
+      console.log(`Creating new user for UID: ${uid} with role: ${role}`);
       user = new User({
         firebaseUid: uid,
         email,
-        name // may be null — that's okay
+        name,
+        role: role || 'seeker'
       });
       await user.save();
       console.log(`User created successfully: ${user._id}`);

@@ -3,12 +3,13 @@ import { initializeApp, getApps, getApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
 
 const firebaseConfig = {
-  apiKey: "AIzaSyAnxMKG0_CcN7vzXjIpdjM1OeCz6GPCFHE",
-  authDomain: "resume-builder-7d288.firebaseapp.com",
-  projectId: "resume-builder-7d288",
-  storageBucket: "resume-builder-7d288.appspot.com",
-  messagingSenderId: "762739174513",
-  appId: "1:762739174513:web:cd321a73a6b325b445bfd0"
+  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
+  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
+  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
+  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
+  measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID
 };
 
 // Prevent duplicate initialization in Next.js

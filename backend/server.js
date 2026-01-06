@@ -11,9 +11,11 @@ const userRoutes = require("./routes/user");
 const resumeRoutes = require("./routes/resume");
 const profileRoutes = require("./routes/profile");
 const aiRoutes = require("./routes/ai");
-const aiCounsellorRoutes = require("./routes/aiCounsellor"); // New mode-based AI counsellor
-const counsellingRoutes = require("./routes/counselling"); // Complete AI counselling flow
+const aiCounsellorRoutes = require("./routes/aiCounsellor");
+const counsellingRoutes = require("./routes/counselling");
 const conversationsRoutes = require("./routes/conversations");
+const jobsRoutes = require("./routes/jobs");
+const applicationRoutes = require("./routes/applications");
 const authenticate = require("./middleware/auth");
 
 const app = express();
@@ -57,13 +59,15 @@ const connectDB = async () => {
 connectDB();
 
 // ✅ Protected routes with authentication middleware
-app.use('/api/users', authenticate, userRoutes); // Changed from /api/user to /api/users
+app.use('/api/users', authenticate, userRoutes);
 app.use('/api/profile', authenticate, profileRoutes);
 app.use('/api/resume', authenticate, resumeRoutes);
 app.use('/api/ai', authenticate, aiRoutes);
-app.use('/api/ai-counsellor', authenticate, aiCounsellorRoutes); // New mode-based AI counsellor
-app.use('/api/counselling', authenticate, counsellingRoutes); // Complete AI counselling flow
+app.use('/api/ai-counsellor', authenticate, aiCounsellorRoutes);
+app.use('/api/counselling', authenticate, counsellingRoutes);
 app.use('/api/conversations', authenticate, conversationsRoutes);
+app.use('/api/jobs', jobsRoutes);
+app.use('/api/applications', authenticate, applicationRoutes);
 
 // Health check
 app.get('/', (req, res) => {

@@ -12,9 +12,7 @@ export default function WelcomeScreen({ onSelectMode }: Props) {
       <p className="mt-2">Choose an option below to get started:</p>
 
       <div className="space-y-2 mt-4">
-        <button onClick={() => onSelectMode('RESUME_ANALYSIS')}>
-          📄 Resume Analysis
-        </button>
+        
 
         <button onClick={() => onSelectMode('GAP_ANALYSIS')}>
           🎯 Gap Analysis

@@ -20,6 +20,7 @@ import CounsellingQuestionnaire from "./CounsellingQuestionnaire";
 import CounsellingResults from "./CounsellingResults";
 import "./chat-interface.css";
 
+
 type Message = {
     id: string;
     role: "user" | "ai";
@@ -91,13 +92,6 @@ export default function ChatInterface() {
             role: "ai",
             content: "Hey there, welcome to AI Career Counsellor! How can I help you today? 😊",
             timestamp: new Date()
-        },
-        {
-            id: "button-resumes",
-            role: "ai",
-            content: "", // Empty content, just showing button
-            timestamp: new Date(),
-            showResumesButton: true // This will display just the button
         },
         {
             id: "action-buttons",
@@ -1173,9 +1167,17 @@ Be HONEST and SPECIFIC. Don't just be polite - point out real weaknesses and gap
     };
 
     const handleBackToChatFromCounselling = () => {
-        setCounsellingPhase('RESUME_SELECTION');
+        // Just switch off career counselling mode but keep the analysis
         setActiveMode(null);
-        setShowWelcomeScreen(true);
+        // Don't reset phase or analysis, so user can go back to view results
+    };
+
+    const handleViewCounsellingResults = () => {
+        // Go back to viewing the results
+        if (counsellingAnalysis) {
+            setActiveMode('career_counselling');
+            setCounsellingPhase('RESULTS');
+        }
     };
 
     const renderCounsellingFlow = () => {
@@ -1641,27 +1643,46 @@ Click the "Mock Interview" button below to start your practice session!`,
             return (
                 <div>
                     <p className="mb-4">Choose an option below to get started:</p>
-                    <div className="space-y-2">
+                    <div className="grid grid-cols-1 gap-4 mt-4">
+                        <button
+                            onClick={() => handleOptionClick('career_counselling')}
+                            className="option-btn btn-gradient-indigo"
+                        >
+                            <Sparkles className="h-5 w-5 text-indigo-600" />
+                            <div className="text-left">
+                                <div className="font-bold text-gray-900">Career Counselling</div>
+                                <div className="text-xs text-gray-500 font-normal">Expert guidance for your journey</div>
+                            </div>
+                        </button>
                         <button
                             onClick={() => handleOptionClick('gap_analysis')}
-                            className="w-full text-left p-3 rounded-lg bg-purple-50 dark:bg-purple-900/20 hover:bg-purple-100 dark:hover:bg-purple-900/40 transition-colors border border-purple-200 dark:border-purple-800"
+                            className="option-btn btn-gradient-purple"
                         >
-                            <span className="text-purple-600 dark:text-purple-400 font-semibold">🎯 Gap Analysis</span>
-                            <span className="text-gray-600 dark:text-gray-400 text-sm ml-2">- Analyze skill gaps</span>
+                            <Brain className="h-5 w-5 text-purple-600" />
+                            <div className="text-left">
+                                <div className="font-bold text-gray-900">Gap Analysis</div>
+                                <div className="text-xs text-gray-500 font-normal">Identify and bridge skill gaps</div>
+                            </div>
                         </button>
                         <button
                             onClick={() => handleOptionClick('tech_quiz')}
-                            className="w-full text-left p-3 rounded-lg bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/40 transition-colors border border-blue-200 dark:border-blue-800"
+                            className="option-btn btn-gradient-blue"
                         >
-                            <span className="text-blue-600 dark:text-blue-400 font-semibold">🧠 Tech Quiz</span>
-                            <span className="text-gray-600 dark:text-gray-400 text-sm ml-2">- Test your knowledge</span>
+                            <FileText className="h-5 w-5 text-blue-600" />
+                            <div className="text-left">
+                                <div className="font-bold text-gray-900">Tech Quiz</div>
+                                <div className="text-xs text-gray-500 font-normal">Validate your technical skills</div>
+                            </div>
                         </button>
                         <button
                             onClick={() => handleOptionClick('mock_interview')}
-                            className="w-full text-left p-3 rounded-lg bg-green-50 dark:bg-green-900/20 hover:bg-green-100 dark:hover:bg-green-900/40 transition-colors border border-green-200 dark:border-green-800"
+                            className="option-btn btn-gradient-green"
                         >
-                            <span className="text-green-600 dark:text-green-400 font-semibold">🎤 Mock Interview</span>
-                            <span className="text-gray-600 dark:text-gray-400 text-sm ml-2">- Practice interviews</span>
+                            <Mic className="h-5 w-5 text-green-600" />
+                            <div className="text-left">
+                                <div className="font-bold text-gray-900">Mock Interview</div>
+                                <div className="text-xs text-gray-500 font-normal">AI-powered interview practice</div>
+                            </div>
                         </button>
                     </div>
                     <p className="mt-4 text-sm text-gray-600 dark:text-gray-400">Or chat with me directly!</p>
@@ -1742,36 +1763,47 @@ Click the "Mock Interview" button below to start your practice session!`,
             return (
                 <div className="mt-4">
                     <div className="grid grid-cols-2 gap-3 max-w-md">
-                        <Button
-                            onClick={handleCareerCounselling}
-                            disabled={isLoading}
-                            className="flex items-center justify-center gap-2 bg-gradient-to-r from-pink-500 to-rose-500 text-white hover:from-pink-600 hover:to-rose-600 rounded-full px-4 py-3 shadow-lg hover:shadow-xl transition-all duration-300 font-semibold"
-                        >
-                            <Sparkles className="h-4 w-4" />
-                            Career Counselling
-                        </Button>
+                        {counsellingAnalysis ? (
+                            <Button
+                                onClick={handleViewCounsellingResults}
+                                disabled={isLoading}
+                                className="flex items-center justify-center gap-2 bg-gradient-to-br from-green-500 via-emerald-600 to-teal-600 text-white hover:from-green-400 hover:via-emerald-500 hover:to-teal-500 rounded-2xl px-5 py-4 shadow-[0_0_30px_rgba(16,185,129,0.6)] hover:shadow-[0_0_50px_rgba(16,185,129,0.8)] transition-all duration-300 font-bold text-sm border border-green-400/30 hover:border-green-400/60 hover:scale-105"
+                            >
+                                <Eye className="h-5 w-5" />
+                                View My Results
+                            </Button>
+                        ) : (
+                            <Button
+                                onClick={handleCareerCounselling}
+                                disabled={isLoading}
+                                className="flex items-center justify-center gap-2 bg-gradient-to-br from-cyan-500 via-blue-600 to-purple-600 text-white hover:from-cyan-400 hover:via-blue-500 hover:to-purple-500 rounded-2xl px-5 py-4 shadow-[0_0_30px_rgba(6,182,212,0.6)] hover:shadow-[0_0_50px_rgba(6,182,212,0.8)] transition-all duration-300 font-bold text-sm border border-cyan-400/30 hover:border-cyan-400/60 hover:scale-105"
+                            >
+                                <Sparkles className="h-5 w-5 animate-pulse" />
+                                Career Counselling
+                            </Button>
+                        )}
                         <Button
                             onClick={handleGapAnalysis}
                             disabled={isLoading}
-                            className="flex items-center justify-center gap-2 bg-gradient-to-r from-purple-500 to-indigo-500 text-white hover:from-purple-600 hover:to-indigo-600 rounded-full px-4 py-3 shadow-lg hover:shadow-xl transition-all duration-300 font-semibold"
+                            className="flex items-center justify-center gap-2 bg-gradient-to-br from-violet-500 via-fuchsia-600 to-pink-600 text-white hover:from-violet-400 hover:via-fuchsia-500 hover:to-pink-500 rounded-2xl px-5 py-4 shadow-[0_0_30px_rgba(167,139,250,0.6)] hover:shadow-[0_0_50px_rgba(167,139,250,0.8)] transition-all duration-300 font-bold text-sm border border-violet-400/30 hover:border-violet-400/60 hover:scale-105"
                         >
-                            <FileText className="h-4 w-4" />
+                            <FileText className="h-5 w-5" />
                             Gap Analysis
                         </Button>
                         <Button
                             onClick={handleTechQuizClick}
                             disabled={isLoading}
-                            className="flex items-center justify-center gap-2 bg-gradient-to-r from-orange-500 to-amber-500 text-white hover:from-orange-600 hover:to-amber-600 rounded-full px-4 py-3 shadow-lg hover:shadow-xl transition-all duration-300 font-semibold"
+                            className="flex items-center justify-center gap-2 bg-gradient-to-br from-amber-500 via-orange-600 to-red-600 text-white hover:from-amber-400 hover:via-orange-500 hover:to-red-500 rounded-2xl px-5 py-4 shadow-[0_0_30px_rgba(251,146,60,0.6)] hover:shadow-[0_0_50px_rgba(251,146,60,0.8)] transition-all duration-300 font-bold text-sm border border-amber-400/30 hover:border-amber-400/60 hover:scale-105"
                         >
-                            <Brain className="h-4 w-4" />
+                            <Brain className="h-5 w-5" />
                             Tech Quiz
                         </Button>
                         <Button
                             onClick={handleMockInterview}
                             disabled={isLoading}
-                            className="flex items-center justify-center gap-2 bg-gradient-to-r from-green-500 to-emerald-500 text-white hover:from-green-600 hover:to-emerald-600 rounded-full px-4 py-3 shadow-lg hover:shadow-xl transition-all duration-300 font-semibold"
+                            className="flex items-center justify-center gap-2 bg-gradient-to-br from-emerald-500 via-green-600 to-teal-600 text-white hover:from-emerald-400 hover:via-green-500 hover:to-teal-500 rounded-2xl px-5 py-4 shadow-[0_0_30px_rgba(16,185,129,0.6)] hover:shadow-[0_0_50px_rgba(16,185,129,0.8)] transition-all duration-300 font-bold text-sm border border-emerald-400/30 hover:border-emerald-400/60 hover:scale-105"
                         >
-                            <MessageCircle className="h-4 w-4" />
+                            <MessageCircle className="h-5 w-5" />
                             Mock Interview
                         </Button>
                     </div>
@@ -1783,325 +1815,205 @@ Click the "Mock Interview" button below to start your practice session!`,
     };
 
     return (
-        <>
-            {/* Career Counselling Flow - Takes over entire screen */}
-            {activeMode === 'career_counselling' ? (
-                renderCounsellingFlow()
-            ) : showWelcomeScreen ? (
-                <WelcomeScreen
-                    onSelectMode={handleModeSelection}
-                    userName={resumeData?.fullName}
-                />
-            ) : (
-                <div className="ai-counsellor-container flex h-[calc(100vh-4rem)] gap-6 p-4 md:p-6 max-w-7xl mx-auto relative z-10">
-                    <Card className="resume-sidebar glass-card hidden md:flex flex-col w-80 h-full border-gray-200 dark:border-gray-700 shadow-lg">
-                        <CardHeader className="pb-4 border-b border-gray-200 dark:border-gray-700">
-                            <CardTitle className="flex items-center gap-2 text-sm font-bold text-gray-700 dark:text-gray-300">
-                                <Lock className="h-4 w-4 float-animation" />
-                                RESUME CONTEXT
-                            </CardTitle>
-                        </CardHeader>
-                        <CardContent className="flex-1 p-6 space-y-6 custom-scrollbar overflow-y-auto">
-                            <div className="flex justify-center">
-                                <div className="avatar-glow w-20 h-20 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center">
-                                    <User className="h-10 w-10 text-white" />
-                                </div>
-                            </div>
-                            {resumeData ? (
-                                <div className="space-y-4">
-                                    <div>
-                                        <p className="text-sm text-gray-500">Name:</p>
-                                        <p className="text-base font-bold text-gray-900 dark:text-gray-100">{resumeData.fullName}</p>
-                                    </div>
-                                    <div>
-                                        <p className="text-sm text-gray-500">Role:</p>
-                                        <p className="text-base font-bold">{resumeData.role}</p>
-                                    </div>
-                                    <div>
-                                        <p className="text-sm text-gray-500">Skills:</p>
-                                        <p className="text-sm">{resumeData.skills.slice(0, 6).join(', ')}</p>
-                                    </div>
-                                    <div>
-                                        <p className="text-sm text-gray-500">Experience:</p>
-                                        <p className="text-base font-bold">{resumeData.experience}</p>
-                                    </div>
-                                </div>
-                            ) : (
-                                <p className="text-sm text-center">Loading...</p>
-                            )}
-                        </CardContent>
-                    </Card>
-
-                    <div className="flex-1 flex flex-col h-full">
-                        <Card className="glass-card flex-1 flex flex-col shadow-lg overflow-hidden">
-                            <CardHeader className="border-b pb-4">
-                                <CardTitle className="flex items-center justify-center gap-2">
-                                    <Sparkles className="h-5 w-5 text-purple-500 float-animation" />
-                                    AI COUNSELOR CHAT
+        <div className="ai-counsellor-bg">
+            <div className="ai-counsellor-container">
+                {activeMode === 'career_counselling' ? (
+                    <div className="flex-1 counselling-content-wrapper">
+                        {renderCounsellingFlow()}
+                    </div>
+                ) : showWelcomeScreen ? (
+                    <WelcomeScreen
+                        onSelectMode={handleModeSelection}
+                        userName={resumeData?.fullName}
+                    />
+                ) : (
+                    <>
+                        <Card className="resume-sidebar glass-card hidden md:flex flex-col">
+                            <CardHeader>
+                                <CardTitle className="flex items-center gap-2">
+                                    <Lock className="h-4 w-4 float-animation" />
+                                    RESUME CONTEXT
                                 </CardTitle>
                             </CardHeader>
-
-                            <div className="flex-1 custom-scrollbar p-6" style={{ overflowY: 'scroll', minHeight: 0, maxHeight: '100%' }}>
-                                <div className="space-y-6">
-                                    {messages.map((msg) => (
-                                        <div key={msg.id} className={cn("flex items-start gap-4", msg.role === "user" ? "justify-end" : "justify-start")}>
-                                            {msg.role === "ai" && (
-                                                <Avatar className="avatar-glow h-10 w-10 bg-gradient-to-br from-purple-400 to-blue-500">
-                                                    <AvatarFallback className="text-white"><Bot className="h-6 w-6" /></AvatarFallback>
-                                                </Avatar>
-                                            )}
-                                            <div className={cn("max-w-[75%]", msg.role === "user" ? "user-message" : "ai-message")}>
-                                                {msg.role === "ai" ? renderMessageContent(msg) : msg.content}
-                                            </div>
-                                            {msg.role === "user" && (
-                                                <Avatar className="avatar-glow h-10 w-10 bg-blue-500">
-                                                    <AvatarFallback className="text-white"><User className="h-6 w-6" /></AvatarFallback>
-                                                </Avatar>
-                                            )}
-                                        </div>
-                                    ))}
-                                    {isLoading && (
-                                        <div className="flex items-start gap-4">
-                                            <Avatar className="h-10 w-10 bg-gradient-to-br from-purple-400 to-blue-500">
-                                                <AvatarFallback className="text-white"><Bot className="h-6 w-6 animate-pulse" /></AvatarFallback>
-                                            </Avatar>
-                                            <div className="bg-gray-100 p-4 rounded-2xl flex items-center gap-2">
-                                                <Loader2 className="h-5 w-5 animate-spin" />
-                                                <span className="text-sm">Thinking...</span>
-                                            </div>
-                                        </div>
-                                    )}
-                                    <div ref={endRef} />
+                            <CardContent className="flex-1 overflow-y-auto custom-scrollbar p-6">
+                                <div className="flex justify-center mb-6">
+                                    <div className="avatar-glow w-20 h-20 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center">
+                                        <User className="h-10 w-10 text-white" />
+                                    </div>
                                 </div>
-                            </div>
+                                {resumeData ? (
+                                    <div className="space-y-4">
+                                        <div>
+                                            <p className="text-xs text-gray-400 uppercase font-bold">Name</p>
+                                            <p className="text-base font-bold">{resumeData.fullName}</p>
+                                        </div>
+                                        <div>
+                                            <p className="text-xs text-gray-400 uppercase font-bold">Role</p>
+                                            <p className="text-base font-bold">{resumeData.role}</p>
+                                        </div>
+                                        <div>
+                                            <p className="text-xs text-gray-400 uppercase font-bold">Experience</p>
+                                            <p className="text-base font-bold">{resumeData.experience}</p>
+                                        </div>
+                                        <div>
+                                            <p className="text-xs text-gray-400 uppercase font-bold">Skills</p>
+                                            <div className="flex flex-wrap gap-2 mt-2">
+                                                {resumeData.skills.slice(0, 10).map(skill => (
+                                                    <span key={skill} className="px-2 py-1 bg-blue-100 text-blue-700 rounded-md text-xs font-semibold">{skill}</span>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <div className="flex flex-col items-center justify-center h-40">
+                                        <Loader2 className="h-8 w-8 animate-spin text-blue-500 mb-2" />
+                                        <p className="text-sm text-gray-500">Loading context...</p>
+                                    </div>
+                                )}
+                            </CardContent>
+                        </Card>
 
+                        <div className="flex-1 flex flex-col h-full min-w-0">
+                            <Card className="glass-card flex-1 flex flex-col shadow-lg">
+                                <div className="chat-header-bar">
+                                    <Sparkles className="h-5 w-5 float-animation" />
+                                    AI COUNSELOR CHAT
+                                </div>
 
-                            <div className="border-t overflow-y-auto custom-scrollbar" style={{ maxHeight: '50vh' }}>
-                                <div className="p-4">
-                                    <form onSubmit={(e) => { e.preventDefault(); handleSend(); }} className="flex gap-3">
-                                        <Input value={input} onChange={(e) => setInput(e.target.value)} placeholder="Ask a question..." className="premium-input flex-1 rounded-full" disabled={isLoading} />
-                                        <Button type="submit" size="icon" disabled={!input.trim() || isLoading} className="premium-button rounded-full bg-blue-500">
+                                <div className="chat-messages-area custom-scrollbar">
+                                    <div className="flex flex-col gap-6">
+                                        {messages.map((msg) => (
+                                            <div key={msg.id} className={cn("flex items-start gap-4", msg.role === "user" ? "justify-end" : "justify-start")}>
+                                                {msg.role === "ai" && (
+                                                    <Avatar className="h-10 w-10 bg-gradient-to-br from-purple-400 to-blue-500 shadow-md">
+                                                        <AvatarFallback className="text-white"><Bot className="h-6 w-6" /></AvatarFallback>
+                                                    </Avatar>
+                                                )}
+                                                <div className={msg.role === "user" ? "user-message" : "ai-message"}>
+                                                    {msg.role === "ai" ? renderMessageContent(msg) : msg.content}
+                                                </div>
+                                                {msg.role === "user" && (
+                                                    <Avatar className="h-10 w-10 bg-indigo-500 shadow-md">
+                                                        <AvatarFallback className="text-white"><User className="h-6 w-6" /></AvatarFallback>
+                                                    </Avatar>
+                                                )}
+                                            </div>
+                                        ))}
+
+                                        {isLoading && (
+                                            <div className="flex items-start gap-4">
+                                                <Avatar className="h-10 w-10 bg-purple-400">
+                                                    <AvatarFallback className="text-white"><Bot className="h-6 w-6 animate-pulse" /></AvatarFallback>
+                                                </Avatar>
+                                                <div className="ai-message flex items-center gap-2">
+                                                    <Loader2 className="h-4 w-4 animate-spin" />
+                                                    <span>Thinking...</span>
+                                                </div>
+                                            </div>
+                                        )}
+                                        <div ref={endRef} />
+                                    </div>
+                                </div>
+
+                                <div className="chat-input-container">
+                                    <form onSubmit={(e) => { e.preventDefault(); handleSend(); }} className="w-full flex gap-4">
+                                        <Input
+                                            value={input}
+                                            onChange={(e) => setInput(e.target.value)}
+                                            placeholder="Type your question here..."
+                                            className="premium-input flex-1"
+                                            disabled={isLoading}
+                                        />
+                                        <Button
+                                            type="submit"
+                                            disabled={!input.trim() || isLoading}
+                                            className="send-button"
+                                        >
                                             <Send className="h-5 w-5" />
                                         </Button>
                                     </form>
-
-
-                                    {showSkillDropdown && (
-                                        <div className="mt-4 p-4 bg-white dark:bg-gray-800 rounded-lg border-2 border-blue-300">
-                                            <h3 className="font-bold mb-3">Select a Skill</h3>
-                                            <div className="grid grid-cols-2 gap-4 max-h-64 overflow-y-auto">
-                                                <div>
-                                                    <h4 className="font-semibold text-sm mb-2">Frontend</h4>
-                                                    {FRONTEND_SKILLS.map(skill => (
-                                                        <Button key={skill} onClick={() => startQuizWithSkill(skill)} variant="outline" className="w-full justify-start text-sm mb-2">
-                                                            {skill}
-                                                        </Button>
-                                                    ))}
-                                                </div>
-                                                <div>
-                                                    <h4 className="font-semibold text-sm mb-2">Backend</h4>
-                                                    {BACKEND_SKILLS.map(skill => (
-                                                        <Button key={skill} onClick={() => startQuizWithSkill(skill)} variant="outline" className="w-full justify-start text-sm mb-2">
-                                                            {skill}
-                                                        </Button>
-                                                    ))}
-                                                </div>
-                                            </div>
-                                            <Button onClick={() => setShowSkillDropdown(false)} variant="ghost" className="w-full mt-4">Cancel</Button>
-                                        </div>
-                                    )}
-
-                                    {quizState.active && !quizState.showResults && quizState.questions.length > 0 && (
-                                        <div className="mt-4 p-6 bg-gradient-to-br from-blue-50 to-purple-50 dark:from-gray-800 dark:to-gray-900 rounded-lg border-2 border-blue-400">
-                                            <div className="flex justify-between items-center mb-4">
-                                                <h3 className="font-bold text-xl">{quizState.selectedSkill} Quiz</h3>
-                                                <span className="text-sm font-semibold bg-blue-500 text-white px-3 py-1 rounded-full">
-                                                    Q {quizState.currentQuestion + 1}/{quizState.questions.length}
-                                                </span>
-                                            </div>
-                                            <div className="w-full bg-gray-200 rounded-full h-2 mb-6">
-                                                <div className="bg-blue-500 h-2 rounded-full" style={{ width: `${((quizState.currentQuestion + 1) / quizState.questions.length) * 100}%` }} />
-                                            </div>
-                                            <div className="bg-white dark:bg-gray-800 p-6 rounded-lg mb-6">
-                                                <h4 className="text-lg font-bold mb-4">{quizState.questions[quizState.currentQuestion]?.question}</h4>
-                                                <RadioGroup value={quizState.userAnswers[quizState.currentQuestion]?.toString() || ""} onValueChange={(v) => handleAnswerSelect(parseInt(v))}>
-                                                    <div className="space-y-3">
-                                                        {quizState.questions[quizState.currentQuestion]?.options.map((option, idx) => (
-                                                            <div key={idx} className="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-50 cursor-pointer">
-                                                                <RadioGroupItem value={idx.toString()} id={`opt-${idx}`} />
-                                                                <Label htmlFor={`opt-${idx}`} className="flex-1 cursor-pointer">{option}</Label>
-                                                            </div>
-                                                        ))}
-                                                    </div>
-                                                </RadioGroup>
-                                            </div>
-                                            <div className="flex justify-between gap-3">
-                                                <Button onClick={handlePreviousQuestion} disabled={quizState.currentQuestion === 0} variant="outline">Previous</Button>
-                                                <div className="flex gap-3">
-                                                    {quizState.currentQuestion < quizState.questions.length - 1 ? (
-                                                        <Button onClick={handleNextQuestion} disabled={quizState.userAnswers[quizState.currentQuestion] === null} className="bg-blue-500">Next</Button>
-                                                    ) : (
-                                                        <Button onClick={handleSubmitQuiz} disabled={quizState.userAnswers.some(a => a === null)} className="bg-green-500">Submit</Button>
-                                                    )}
-                                                </div>
-                                            </div>
-                                        </div>
-                                    )}
-
-                                    {quizState.showResults && (
-                                        <div className="mt-4 p-6 bg-gradient-to-br from-green-50 to-blue-50 rounded-lg border-2 border-green-400">
-                                            <h3 className="font-bold text-2xl text-center mb-4">Quiz Results</h3>
-                                            <div className="text-center mb-6">
-                                                <div className="text-6xl font-bold text-green-600">{quizState.score.toFixed(0)}%</div>
-                                                <p className="text-lg">You scored {quizState.questions.filter((q, i) => quizState.userAnswers[i] === q.correctAnswer).length} out of {quizState.questions.length}</p>
-                                            </div>
-                                            <div className="space-y-4 mb-6">
-                                                {quizState.questions.map((q, idx) => {
-                                                    const correct = quizState.userAnswers[idx] === q.correctAnswer;
-                                                    return (
-                                                        <div key={idx} className={cn("p-4 rounded-lg border-2", correct ? "bg-green-50 border-green-300" : "bg-red-50 border-red-300")}>
-                                                            <p className="font-semibold mb-2">Q{idx + 1}: {q.question}</p>
-                                                            <p className="text-sm">Your: <span className={correct ? "text-green-600 font-bold" : "text-red-600 font-bold"}>{q.options[quizState.userAnswers[idx] || 0]}</span></p>
-                                                            {!correct && <p className="text-sm text-green-600 font-semibold">Correct: {q.options[q.correctAnswer]}</p>}
-                                                        </div>
-                                                    );
-                                                })}
-                                            </div>
-                                            <Button onClick={resetQuiz} className="w-full bg-blue-500">Take Another Quiz</Button>
-                                        </div>
-                                    )}
-
-                                    {interviewState.active && (
-                                        <div className="mt-4 p-8 bg-gradient-to-br from-purple-100 via-blue-100 to-pink-100 dark:from-gray-800 dark:to-gray-900 rounded-lg border-2 border-purple-400 shadow-2xl">
-                                            <div className="text-center mb-6">
-                                                <div className="relative inline-block">
-                                                    <Avatar className={cn(
-                                                        "h-32 w-32 bg-gradient-to-br from-purple-500 to-blue-600 shadow-2xl mx-auto mb-4 transition-all",
-                                                        interviewState.isSpeaking && "animate-pulse ring-4 ring-purple-400"
-                                                    )}>
-                                                        <AvatarFallback className="text-white">
-                                                            <Bot className="h-16 w-16" />
-                                                        </AvatarFallback>
-                                                    </Avatar>
-                                                    {interviewState.isSpeaking && (
-                                                        <Volume2 className="absolute top-0 right-0 h-8 w-8 text-purple-600 animate-bounce" />
-                                                    )}
-                                                </div>
-                                                <h3 className="font-bold text-2xl mb-2">Mock Interview in Progress</h3>
-                                                <p className="text-sm text-gray-600 dark:text-gray-400">
-                                                    Question {interviewState.questionNumber + 1} of {interviewState.totalQuestions}
-                                                </p>
-                                            </div>
-
-                                            {interviewState.currentQuestion && (
-                                                <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg mb-6">
-                                                    <h4 className="font-bold text-lg mb-2 text-purple-700 dark:text-purple-300">Current Question:</h4>
-                                                    <p className="text-gray-800 dark:text-gray-200 text-lg leading-relaxed">
-                                                        {interviewState.currentQuestion}
-                                                    </p>
-                                                </div>
-                                            )}
-
-                                            <div className="flex flex-col gap-4">
-                                                <Button
-                                                    onClick={startVoiceRecognition}
-                                                    disabled={interviewState.isListening || interviewState.isSpeaking || isLoading}
-                                                    className={cn(
-                                                        "w-full py-6 text-lg font-bold rounded-full transition-all",
-                                                        interviewState.isListening
-                                                            ? "bg-red-500 hover:bg-red-600 animate-pulse"
-                                                            : "bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
-                                                    )}
-                                                >
-                                                    {interviewState.isListening ? (
-                                                        <>
-                                                            <MicOff className="h-6 w-6 mr-2" />
-                                                            Listening... Speak Your Answer
-                                                        </>
-                                                    ) : (
-                                                        <>
-                                                            <Mic className="h-6 w-6 mr-2" />
-                                                            🎤 Answer with Voice
-                                                        </>
-                                                    )}
-                                                </Button>
-
-                                                <div className="text-center text-sm text-gray-600 dark:text-gray-400">OR</div>
-
-                                                <form onSubmit={(e) => {
-                                                    e.preventDefault();
-                                                    if (!input.trim() || isLoading) return;
-                                                    handleSend();
-                                                }} className="flex gap-3">
-                                                    <Input
-                                                        value={input}
-                                                        onChange={(e) => setInput(e.target.value)}
-                                                        placeholder="Type your answer here..."
-                                                        className="flex-1 text-lg p-6 rounded-full border-2 border-purple-400"
-                                                        disabled={isLoading || interviewState.isListening}
-                                                    />
-                                                    <Button
-                                                        type="submit"
-                                                        size="lg"
-                                                        disabled={!input.trim() || isLoading || interviewState.isListening}
-                                                        className="rounded-full bg-green-600 hover:bg-green-700 px-8"
-                                                    >
-                                                        <Send className="h-5 w-5 mr-2" />
-                                                        Submit Answer
-                                                    </Button>
-                                                </form>
-
-                                                <div className="grid grid-cols-2 gap-3">
-                                                    <Button
-                                                        onClick={stopInterview}
-                                                        variant="outline"
-                                                        className="border-2 border-red-400 text-red-600 hover:bg-red-50"
-                                                    >
-                                                        Stop Interview
-                                                    </Button>
-                                                    <Button
-                                                        onClick={() => speak(interviewState.currentQuestion)}
-                                                        variant="outline"
-                                                        disabled={!interviewState.currentQuestion || interviewState.isSpeaking}
-                                                        className="border-2 border-purple-400"
-                                                    >
-                                                        <Volume2 className="h-4 w-4 mr-2" />
-                                                        Repeat Question
-                                                    </Button>
-                                                </div>
-
-                                                {interviewState.isListening && (
-                                                    <div className="bg-red-100 dark:bg-red-900/30 p-4 rounded-lg flex items-center justify-center gap-3">
-                                                        <div className="flex gap-1">
-                                                            <span className="w-2 h-8 bg-red-500 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></span>
-                                                            <span className="w-2 h-10 bg-red-500 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></span>
-                                                            <span className="w-2 h-12 bg-red-500 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></span>
-                                                            <span className="w-2 h-10 bg-red-500 rounded-full animate-bounce" style={{ animationDelay: '450ms' }}></span>
-                                                            <span className="w-2 h-8 bg-red-500 rounded-full animate-bounce" style={{ animationDelay: '600ms' }}></span>
-                                                        </div>
-                                                        <p className="font-bold text-red-700 dark:text-red-300">Recording your answer...</p>
-                                                    </div>
-                                                )}
-                                            </div>
-                                        </div>
-                                    )}
                                 </div>
-                            </div>
-                        </Card>
-                    </div>
-                </div>
-            )}
 
-            {/* Hidden file input for resume upload */}
-            <input
-                type="file"
-                ref={fileInputRef}
-                onChange={handleFileChange}
-                accept=".pdf,.doc,.docx,.txt"
-                style={{ display: 'none' }}
-            />
+                                {showSkillDropdown && (
+                                    <div className="p-6 bg-white border-t">
+                                        <h3 className="font-bold mb-4">Select a technology to start your quiz:</h3>
+                                        <div className="grid grid-cols-2 gap-4">
+                                            {FRONTEND_SKILLS.concat(BACKEND_SKILLS).map(skill => (
+                                                <Button key={skill} onClick={() => startQuizWithSkill(skill)} variant="outline" className="justify-start">
+                                                    {skill}
+                                                </Button>
+                                            ))}
+                                        </div>
+                                        <Button onClick={() => setShowSkillDropdown(false)} variant="ghost" className="w-full mt-4">Cancel</Button>
+                                    </div>
+                                )}
 
-            {/* Resume Selector Modal */}
+                                {quizState.active && !quizState.showResults && (
+                                    <div className="p-6 bg-blue-50 border-t">
+                                        <div className="flex justify-between mb-4 font-bold">
+                                            <span>{quizState.selectedSkill} Quiz</span>
+                                            <span>Question {quizState.currentQuestion + 1} / {quizState.questions.length}</span>
+                                        </div>
+                                        <div className="bg-white p-6 rounded-xl shadow-sm mb-6">
+                                            <p className="text-lg font-bold mb-4">{quizState.questions[quizState.currentQuestion]?.question}</p>
+                                            <RadioGroup value={quizState.userAnswers[quizState.currentQuestion]?.toString() || ""} onValueChange={(v) => handleAnswerSelect(parseInt(v))}>
+                                                <div className="space-y-3">
+                                                    {quizState.questions[quizState.currentQuestion]?.options.map((opt, i) => (
+                                                        <div key={i} className="flex items-center gap-3 p-3 border rounded-lg hover:bg-gray-50">
+                                                            <RadioGroupItem value={i.toString()} id={`q${i}`} />
+                                                            <Label htmlFor={`q${i}`} className="flex-1 cursor-pointer">{opt}</Label>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </RadioGroup>
+                                        </div>
+                                        <div className="flex justify-between">
+                                            <Button onClick={handlePreviousQuestion} disabled={quizState.currentQuestion === 0} variant="outline">Back</Button>
+                                            <Button onClick={quizState.currentQuestion === quizState.questions.length - 1 ? handleSubmitQuiz : handleNextQuestion} className="bg-indigo-600">
+                                                {quizState.currentQuestion === quizState.questions.length - 1 ? "Finish" : "Next"}
+                                            </Button>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {quizState.showResults && (
+                                    <div className="p-8 text-center border-t bg-green-50">
+                                        <h3 className="text-2xl font-bold mb-2">Quiz Completed!</h3>
+                                        <p className="text-5xl font-black text-green-600 mb-6">{quizState.score.toFixed(0)}%</p>
+                                        <Button onClick={resetQuiz} className="bg-indigo-600 px-8">Try Another Quiz</Button>
+                                    </div>
+                                )}
+
+                                {interviewState.active && (
+                                    <div className="p-8 bg-purple-50 border-t">
+                                        <div className="text-center mb-6">
+                                            <Avatar className={cn("h-24 w-24 mx-auto mb-4 bg-purple-600 shadow-lg", interviewState.isSpeaking && "animate-pulse ring-4 ring-purple-300")}>
+                                                <AvatarFallback className="text-white"><Bot className="h-12 w-12" /></AvatarFallback>
+                                            </Avatar>
+                                            <h3 className="text-xl font-bold">Mock Interview Session</h3>
+                                            <p className="text-purple-600 font-semibold">Question {interviewState.questionNumber + 1} of {interviewState.totalQuestions}</p>
+                                        </div>
+                                        <div className="bg-white p-6 rounded-xl shadow-md mb-6">
+                                            <p className="text-lg font-bold text-center leading-relaxed">{interviewState.currentQuestion}</p>
+                                        </div>
+                                        <div className="flex flex-col gap-4">
+                                            <Button onClick={startVoiceRecognition} disabled={interviewState.isListening || interviewState.isSpeaking} className={cn("py-6 text-lg font-bold rounded-full transition-all", interviewState.isListening ? "bg-red-500 animate-pulse" : "bg-purple-600 hover:bg-purple-700")}>
+                                                {interviewState.isListening ? "Listening... Speak Now" : "🎤 Answer with Voice"}
+                                            </Button>
+                                            <div className="flex gap-4">
+                                                <Button onClick={stopInterview} variant="outline" className="flex-1 border-red-200 text-red-600 hover:bg-red-50 py-4">Stop Interview</Button>
+                                                <Button onClick={() => speak(interviewState.currentQuestion)} variant="outline" className="flex-1 py-4">Repeat Question</Button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+                            </Card>
+                        </div>
+                    </>
+                )}
+            </div>
+
+            <input type="file" ref={fileInputRef} onChange={handleFileChange} accept=".pdf,.doc,.docx,.txt" style={{ display: 'none' }} />
             {showResumeSelector && (
                 <ResumeSelector
                     resumes={fetchedResumes}
@@ -2110,7 +2022,6 @@ Click the "Mock Interview" button below to start your practice session!`,
                     isLoading={isLoading}
                 />
             )}
-        </>
+        </div>
     );
 }
-

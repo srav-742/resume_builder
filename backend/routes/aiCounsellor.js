@@ -9,7 +9,8 @@ const AI_MODES = {
   MOCK_INTERVIEW: 'mock_interview',
   TECH_QUIZ: 'tech_quiz',
   RESUME_BUILDING: 'resume_building',
-  GENERAL_CHAT: 'general_chat'
+  GENERAL_CHAT: 'general_chat',
+  RECRUITER_ASSISTANT: 'recruiter_assistant'
 };
 
 /* =========================
@@ -81,6 +82,16 @@ TASK:
 - Interview tips
 
 Suggest other modes when useful.
+`,
+
+    [AI_MODES.RECRUITER_ASSISTANT]: `
+You are a PROFESSIONAL RECRUITER ASSISTANT.
+
+TASK:
+- Summarize candidate resumes for quick reading
+- Suggest 3 targeted interview questions based on candidate's specific background
+- Explain why a candidate is a good/bad match for a specific JD
+- Identify potential red flags in experience
 `
   };
 

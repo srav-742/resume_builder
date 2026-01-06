@@ -31,17 +31,65 @@ const userSchema = new mongoose.Schema({
   // ✅ FIXED: Removed invalid default=""
   fullName: { type: String },
   phone: { type: String },
-  gender: { 
-    type: String, 
-    enum: ["Male", "Female", "Other", "Prefer not to say"]
-    // 👆 No default → field is optional and can be undefined
+  role: {
+    type: String,
+    enum: ["seeker", "recruiter", "admin"],
+    default: "seeker"
   },
-  dateOfBirth: { type: Date }, // stored as ISO Date
+  gender: {
+    type: String,
+    enum: ["Male", "Female", "Other", "Prefer not to say"]
+  },
+  dateOfBirth: { type: Date },
   address: { type: String },
-  profilePicture: { type: String }, // base64 or URL
+  profilePicture: { type: String },
   summary: { type: String },
-  
-  // ✅ ADDED: selectedTemplate field for resume template persistence
+
+  // Job Seeker Profile Details
+  skills: [{
+    name: String,
+    level: { type: String, enum: ["Beginner", "Intermediate", "Expert"] },
+    isVerified: { type: Boolean, default: false }
+  }],
+  experience: [{
+    company: String,
+    role: String,
+    startDate: Date,
+    endDate: Date,
+    current: { type: Boolean, default: false },
+    description: String
+  }],
+  education: [{
+    school: String,
+    degree: String,
+    fieldOfStudy: String,
+    startYear: Number,
+    endYear: Number
+  }],
+  preferences: {
+    jobTypes: [String], // Full-time, Internship, Freelance
+    workModes: [String], // Remote, Hybrid, Onsite
+    expectedSalary: {
+      min: Number,
+      max: Number,
+      currency: { type: String, default: "INR" }
+    },
+    locations: [String]
+  },
+
+  // Recruiter Specific
+  company: {
+    name: String,
+    website: String,
+    logo: String,
+    description: String,
+    verified: { type: Boolean, default: false }
+  },
+
+  // Gamification & Progress
+  profileCompletion: { type: Number, default: 0 },
+  reputationScore: { type: Number, default: 0 },
+
   selectedTemplate: {
     type: String,
     enum: ['template1', 'template2', 'template3', 'template4', 'template5', 'template6'],
@@ -52,7 +100,7 @@ const userSchema = new mongoose.Schema({
 });
 
 // Hash password only if modified
-userSchema.pre('save', async function(next) {
+userSchema.pre('save', async function (next) {
   if (!this.isModified('password') || !this.password) {
     return next();
   }
