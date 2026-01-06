@@ -39,7 +39,7 @@ const ResumeSelection: React.FC<ResumeSelectionProps> = ({ onResumeSelected }) =
             console.log('✅ JWT token obtained');
             console.log('→ Calling API: /api/resume');
 
-            const response = await fetch('http://localhost:5000/api/resume', {
+            const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL || 'https://resume-builder-2gji.onrender.com'}/api/resume`, {
                 headers: {
                     'Authorization': `Bearer ${token}`
                 }

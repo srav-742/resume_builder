@@ -308,7 +308,7 @@ export default function ChatInterface() {
             const token = await user.getIdToken();
 
             // Fetch user's resumes from API
-            const response = await fetch('http://localhost:5000/api/users/resumes', {
+            const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL || 'https://resume-builder-2gji.onrender.com'}/api/users/resumes`, {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',
@@ -1073,7 +1073,7 @@ Be HONEST and SPECIFIC. Don't just be polite - point out real weaknesses and gap
             const token = await user.getIdToken();
             console.log('Starting counselling session with token...');
 
-            const response = await fetch('http://localhost:5000/api/counselling/start-session', {
+            const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL || 'https://resume-builder-2gji.onrender.com'}/api/counselling/start-session`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -1107,7 +1107,7 @@ Be HONEST and SPECIFIC. Don't just be polite - point out real weaknesses and gap
             }
 
             const token = await user.getIdToken();
-            const response = await fetch('http://localhost:5000/api/counselling/select-resume', {
+            const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL || 'https://resume-builder-2gji.onrender.com'}/api/counselling/select-resume`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

@@ -73,7 +73,7 @@ export default function TemplatesPage() {
       };
 
       updateResumeData(updatedData);
-      
+
       // ✅ Save to resume system (your existing logic)
       await saveResume(updatedData);
 
@@ -82,7 +82,7 @@ export default function TemplatesPage() {
       const user = auth.currentUser;
       if (user) {
         const idToken = await user.getIdToken();
-        const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000';
+        const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'https://resume-builder-2gji.onrender.com';
 
         const profileResponse = await fetch(`${BACKEND_URL}/api/profile`, {
           method: 'PUT',
@@ -132,9 +132,8 @@ export default function TemplatesPage() {
             {templates.map((template) => (
               <Card
                 key={template.id}
-                className={`overflow-hidden transition-all hover:shadow-lg ${
-                  selectedTemplate === template.id ? "ring-2 ring-primary" : ""
-                }`}
+                className={`overflow-hidden transition-all hover:shadow-lg ${selectedTemplate === template.id ? "ring-2 ring-primary" : ""
+                  }`}
               >
                 <div className="relative h-80 bg-muted">
                   <Image src={template.image || "/placeholder.svg"} alt={template.name} fill className="object-cover" />

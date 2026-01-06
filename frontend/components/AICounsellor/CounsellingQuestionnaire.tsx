@@ -54,7 +54,7 @@ const CounsellingQuestionnaire: React.FC<CounsellingQuestionnaireProps> = ({
             }
 
             const token = await user.getIdToken();
-            const response = await fetch(`http://localhost:5000/api/counselling/session/${sessionId}`, {
+            const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL || 'https://resume-builder-2gji.onrender.com'}/api/counselling/session/${sessionId}`, {
                 headers: {
                     'Authorization': `Bearer ${token}`
                 }
@@ -92,7 +92,7 @@ const CounsellingQuestionnaire: React.FC<CounsellingQuestionnaireProps> = ({
             const token = await user.getIdToken();
             console.log('Saving response for section:', section, 'Advance:', advance);
 
-            const response = await fetch('http://localhost:5000/api/counselling/save-response', {
+            const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL || 'https://resume-builder-2gji.onrender.com'}/api/counselling/save-response`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -142,7 +142,7 @@ const CounsellingQuestionnaire: React.FC<CounsellingQuestionnaireProps> = ({
             const token = await user.getIdToken();
             console.log('Validating skills...');
 
-            const response = await fetch('http://localhost:5000/api/counselling/validate-skills', {
+            const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL || 'https://resume-builder-2gji.onrender.com'}/api/counselling/validate-skills`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -195,7 +195,7 @@ const CounsellingQuestionnaire: React.FC<CounsellingQuestionnaireProps> = ({
             console.log('✅ JWT token obtained');
             console.log('→ Calling backend API: /api/counselling/generate-analysis');
 
-            const response = await fetch('http://localhost:5000/api/counselling/generate-analysis', {
+            const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL || 'https://resume-builder-2gji.onrender.com'}/api/counselling/generate-analysis`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

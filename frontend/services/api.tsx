@@ -4,10 +4,7 @@ import { auth } from "@/lib/firebase";
 import { getIdToken } from "firebase/auth";
 
 // Ensure backend URL is defined
-const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
-if (!BACKEND_URL) {
-  throw new Error("NEXT_PUBLIC_BACKEND_URL is not defined in .env.local");
-}
+const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'https://resume-builder-2gji.onrender.com';
 const API_URL = `${BACKEND_URL}/api`;
 
 /**
