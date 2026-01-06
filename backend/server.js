@@ -21,22 +21,33 @@ const authenticate = require("./middleware/auth");
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// ✅ CORRECTED CORS: No trailing spaces, added all active domains
 const corsOptions = {
   origin: [
     'http://localhost:3000',
     'http://localhost:3001',
     'http://localhost:3002',
-    'http://localhost:3003', // Next.js default dev port
-    'http://localhost:5173', // Vite
+    'http://localhost:3003',
+    'http://localhost:5173',
     'https://resume-builder-ydr2.vercel.app',
     'https://resume-builder-lyart-six.vercel.app',
-    'https://resume-builder-8bque.vercel.app' // ✅ Your current live domain
+    'https://resume-builder-8bque.vercel.app',
+    'https://resume-builder-delta-seven.vercel.app' // ✅ ADDED: New Vercel Domain
   ],
   credentials: true,
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"]
 };
 
+// Handle preflight requests
+app.options("*", cors(corsOptions));
 app.use(cors(corsOptions));
+
+// ✅ Added security headers for OAuth popups and COOP
+app.use((req, res, next) => {
+  res.setHeader("Cross-Origin-Opener-Policy", "same-origin-allow-popups");
+  res.setHeader("Cross-Origin-Embedder-Policy", "unsafe-none");
+  next();
+});
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
