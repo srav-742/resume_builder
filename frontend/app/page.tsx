@@ -55,7 +55,7 @@ export default function WelcomePage() {
 
       <section className="features-section">
         <div style={{ textAlign: 'center', marginBottom: '4rem' }}>
-          <h2 style={{ fontSize: '3rem', color: 'white' }}>Smart Resume Preparation</h2>
+          <h2 style={{ fontSize: '3rem', color: 'var(--text-main)' }}>Smart Resume Preparation</h2>
           <p style={{ color: 'var(--text-muted)', fontSize: '1.25rem' }}>AI-driven tools to get you noticed by top employers.</p>
         </div>
 
@@ -80,7 +80,7 @@ export default function WelcomePage() {
 
       <section className="role-section" style={{ minHeight: 'auto', paddingBottom: '100px' }}>
         <div className="bg-indigo-600/10 border border-indigo-500/20 rounded-[3rem] p-12 lg:p-20 max-w-5xl mx-auto">
-          <h2 style={{ fontSize: '3rem', color: 'white', marginBottom: '1.5rem' }}>Ready to build your best resume?</h2>
+          <h2 style={{ fontSize: '3rem', color: 'var(--text-main)', marginBottom: '1.5rem' }}>Ready to build your best resume?</h2>
           <p style={{ color: '#94a3b8', fontSize: '1.25rem', marginBottom: '3rem', maxWidth: '700px', marginInline: 'auto' }}>
             Join thousands of successful professionals using DreamPath. Create, refine, and perfect your professional identity with the help of AI.
           </p>

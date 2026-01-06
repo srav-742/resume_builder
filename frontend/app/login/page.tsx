@@ -71,43 +71,43 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-950 flex items-center justify-center p-4 overflow-hidden relative">
-      <div className="absolute top-0 left-0 w-96 h-96 bg-indigo-500/20 rounded-full blur-[120px] -translate-x-1/2 -translate-y-1/2"></div>
+    <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4 overflow-hidden relative">
+      <div className="absolute top-0 left-0 w-96 h-96 bg-indigo-500/10 rounded-full blur-[120px] -translate-x-1/2 -translate-y-1/2"></div>
       <div className="absolute bottom-0 right-0 w-96 h-96 bg-purple-500/10 rounded-full blur-[120px] translate-x-1/2 translate-y-1/2"></div>
 
-      <div className="w-full max-w-6xl bg-slate-900 border border-slate-800 rounded-[2.5rem] shadow-2xl overflow-hidden grid grid-cols-1 lg:grid-cols-2 z-10">
+      <div className="w-full max-w-6xl bg-white border border-slate-200 rounded-[2.5rem] shadow-2xl overflow-hidden grid grid-cols-1 lg:grid-cols-2 z-10">
         <div className="p-8 lg:p-16 flex flex-col justify-center">
           <div className="max-w-md mx-auto w-full">
             <div className="flex items-center gap-2 mb-8 animate-in fade-in duration-700">
-              <Sparkles className="text-indigo-500 w-8 h-8" />
-              <h1 className="text-2xl font-bold text-white tracking-tight">DreamPath</h1>
+              <Sparkles className="text-indigo-600 w-8 h-8" />
+              <h1 className="text-2xl font-bold text-slate-900 tracking-tight">DreamPath</h1>
             </div>
 
             <div className="space-y-2 mb-10 animate-in fade-in slide-in-from-bottom-2 duration-700">
-              <h2 className="text-4xl font-black text-white">Welcome Back</h2>
-              <p className="text-slate-400 font-medium">Log in to manage your professional path.</p>
+              <h2 className="text-4xl font-black text-slate-900">Welcome Back</h2>
+              <p className="text-slate-500 font-medium">Log in to manage your professional path.</p>
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-1000">
               <div className="group">
-                <label className="block text-sm font-bold text-slate-400 mb-2 group-focus-within:text-indigo-400 transition-colors">Email Address</label>
+                <label className="block text-sm font-bold text-slate-500 mb-2 group-focus-within:text-indigo-600 transition-colors">Email Address</label>
                 <input
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-2xl px-6 py-4 text-white focus:ring-2 focus:ring-indigo-500 outline-none transition"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-6 py-4 text-slate-900 focus:ring-2 focus:ring-indigo-500 outline-none transition"
                   placeholder="name@example.com"
                   required
                 />
               </div>
 
               <div className="group relative">
-                <label className="block text-sm font-bold text-slate-400 mb-2 group-focus-within:text-indigo-400 transition-colors">Password</label>
+                <label className="block text-sm font-bold text-slate-500 mb-2 group-focus-within:text-indigo-600 transition-colors">Password</label>
                 <input
                   type={showPassword ? 'text' : 'password'}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-2xl px-6 py-4 text-white focus:ring-2 focus:ring-indigo-500 outline-none transition pr-14"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-6 py-4 text-slate-900 focus:ring-2 focus:ring-indigo-500 outline-none transition pr-14"
                   placeholder="••••••••"
                   required
                 />

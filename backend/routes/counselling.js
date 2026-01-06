@@ -8,7 +8,7 @@ const { GoogleGenerativeAI } = require('@google/generative-ai');
 // Initialize Gemini
 let model = null;
 let genAI = null;
-let currentModelName = "gemini-2.5-flash-lite"; // Track which model we're using - CORRECTED MODEL
+let currentModelName = "gemini-2.5-flash"; // Track which model we're using - CORRECTED MODEL
 
 if (process.env.GEMINI_API_KEY) {
     try {
@@ -25,7 +25,7 @@ if (process.env.GEMINI_API_KEY) {
 }
 
 // Lazy initialization function as fallback
-function ensureModel(preferredModel = "gemini-2.5-flash-lite") {
+function ensureModel(preferredModel = "gemini-2.5-flash") {
     if (!model && process.env.GEMINI_API_KEY) {
         try {
             if (!genAI) {
@@ -46,10 +46,10 @@ function ensureModel(preferredModel = "gemini-2.5-flash-lite") {
 async function generateWithFallback(prompt) {
     // try all available working models
     const modelsToTry = [
+        "gemini-2.5-flash",
         "gemini-2.5-flash-lite",
-        "gemini-2.0-flash",
         "gemini-1.5-flash",
-        "gemini-1.5-flash-latest",
+        "gemini-2.0-flash",
         "gemini-pro"
     ];
 

@@ -26,7 +26,7 @@ export default function RootLayout({
           content="telephone=no, date=no, email=no, address=no"
         />
       </head>
-      <body className={`${inter.className} bg-slate-950`} suppressHydrationWarning={true}>
+      <body className={`${inter.className} bg-slate-50 text-slate-900`} suppressHydrationWarning={true}>
         <ResumeProvider>{children}</ResumeProvider>
       </body>
     </html>

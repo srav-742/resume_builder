@@ -71,18 +71,18 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     ]
 
     return (
-        <div className="min-h-screen bg-slate-950 text-white flex">
+        <div className="min-h-screen bg-slate-50 text-slate-900 flex">
             {/* Sidebar */}
             <aside className={`
-        fixed inset-y-0 left-0 z-50 w-64 bg-slate-900 border-r border-slate-800 transition-transform duration-300
+        fixed inset-y-0 left-0 z-50 w-64 bg-white border-r border-slate-200 transition-transform duration-300
         ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}
         lg:relative lg:translate-x-0
       `}>
                 <div className="h-full flex flex-col">
                     <div className="p-6 flex items-center justify-between">
                         <Link href="/" className="flex items-center gap-2">
-                            <Zap className="text-indigo-500 w-8 h-8" />
-                            <span className="text-xl font-bold bg-gradient-to-r from-white to-slate-400 bg-clip-text text-transparent">
+                            <Zap className="text-indigo-600 w-8 h-8" />
+                            <span className="text-xl font-bold bg-gradient-to-r from-indigo-600 to-indigo-400 bg-clip-text text-transparent">
                                 DreamPath
                             </span>
                         </Link>
@@ -123,12 +123,12 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
             {/* Main Content */}
             <div className="flex-1 flex flex-col min-w-0">
-                <header className="h-16 border-b border-slate-800 bg-slate-950/50 backdrop-blur-xl flex items-center justify-between px-6 lg:px-8 sticky top-0 z-40">
+                <header className="h-16 border-b border-slate-200 bg-white/80 backdrop-blur-xl flex items-center justify-between px-6 lg:px-8 sticky top-0 z-40">
                     <div className="flex items-center gap-4">
                         <button className="lg:hidden" onClick={() => setSidebarOpen(true)}>
-                            <Menu size={24} />
+                            <Menu size={24} className="text-slate-600" />
                         </button>
-                        <h2 className="text-lg font-bold text-white hidden sm:block">
+                        <h2 className="text-lg font-bold text-slate-900 hidden sm:block">
                             {navItems.find(n => n.href === pathname)?.label || 'Dashboard'}
                         </h2>
                     </div>
@@ -141,7 +141,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                         <div className="h-8 w-px bg-slate-800"></div>
                         <div className="flex items-center gap-3">
                             <div className="text-right hidden sm:block">
-                                <p className="text-sm font-bold text-white">{user?.displayName}</p>
+                                <p className="text-sm font-bold text-slate-900">{user?.displayName}</p>
                                 <p className="text-xs text-slate-400 capitalize">{user?.role}</p>
                             </div>
                             <div className="h-10 w-10 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 border border-slate-700 flex items-center justify-center font-bold text-white">
@@ -151,7 +151,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                     </div>
                 </header>
 
-                <main className="flex-1 overflow-y-auto bg-slate-950">
+                <main className="flex-1 overflow-y-auto bg-slate-50">
                     {children}
                 </main>
             </div>
