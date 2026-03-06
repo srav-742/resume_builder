@@ -3,8 +3,8 @@
 import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 // ✅ FIXED: onAuthStateChanged comes from 'firebase/auth', NOT your lib
-import { auth, type User } from "@/lib/firebase";
-import { onAuthStateChanged } from "firebase/auth"; // ✅ Correct import
+import { auth } from "@/lib/firebase";
+import { onAuthStateChanged, type User } from "firebase/auth"; // ✅ Correct import
 import { getUserResume } from "@/services/api";
 import { getFurthestStep } from "@/lib/getFurthestStep";
 
@@ -132,6 +132,7 @@ export function ResumeProvider({ children }: { children: ReactNode }) {
         currentPath === '/profile' ||
         currentPath.startsWith('/profile/') ||
         currentPath === '/dashboard' ||
+        currentPath === '/templates' ||
         currentPath === '/settings';
 
       if (!isProfileOrFixedRoute) {

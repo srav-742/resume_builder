@@ -37,7 +37,7 @@ export default function SignupPage() {
       const idToken = await userCredential.user.getIdToken(true)
       await syncProfile(idToken)
 
-      router.push('/onboarding/seeker')
+      router.push('/templates')
     } catch (error: any) {
       console.error('Signup error:', error)
       alert('Signup failed. Email may already be in use.')
@@ -54,7 +54,7 @@ export default function SignupPage() {
       const idToken = await result.user.getIdToken(true)
       await syncProfile(idToken)
 
-      router.push('/onboarding/seeker')
+      router.push('/templates')
     } catch (error: any) {
       console.error('Google Sign-In Error:', error)
       alert('Google sign-in failed.')

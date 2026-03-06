@@ -29,11 +29,11 @@ export default function LoginPage() {
       });
 
       if (profileResponse.ok) {
-        const profile = await profileResponse.json();
-        const role = profile.role || 'seeker';
-        router.push(role === 'seeker' ? '/dashboard/seeker' : '/dashboard/recruiter');
+        // const profile = await profileResponse.json();
+        // const role = profile.role || 'seeker';
+        router.push('/templates');
       } else {
-        router.push('/builder');
+        router.push('/templates');
       }
     } catch (error: any) {
       console.error('Firebase login error:', error)
@@ -56,11 +56,11 @@ export default function LoginPage() {
       });
 
       if (profileResponse.ok) {
-        const profile = await profileResponse.json();
-        const role = profile.role || 'seeker';
-        router.push(role === 'seeker' ? '/dashboard/seeker' : '/dashboard/recruiter');
+        // const profile = await profileResponse.json();
+        // const role = profile.role || 'seeker';
+        router.push('/templates');
       } else {
-        router.push('/builder');
+        router.push('/templates');
       }
     } catch (error: any) {
       console.error('Google Sign-In Error:', error)
