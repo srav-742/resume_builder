@@ -15,6 +15,7 @@ export default function ResumeTemplate1({ data }: ResumeTemplateProps) {
       {/* Header */}
       <header className="mb-6">
         <h1 className="text-3xl font-bold text-gray-900 mb-1">{personalInfo?.fullName || "Full Name"}</h1>
+        {personalInfo?.jobTitle && <p className="text-lg text-gray-700 font-medium mb-2">{personalInfo.jobTitle}</p>}
 
         {/* Contact Info - Inline with dots */}
         <div className="flex flex-wrap gap-2 text-sm text-gray-600">
@@ -79,7 +80,7 @@ export default function ResumeTemplate1({ data }: ResumeTemplateProps) {
       {/* Projects & Extracurricular */}
       {projects && projects.length > 0 && (
         <section className="mb-6">
-          <h2 className="text-lg font-bold text-gray-900 mb-3 border-b border-gray-400 pb-1">PROJECTS & EXTRACURRICULAR</h2>
+          <h2 className="text-lg font-bold text-gray-900 mb-3 border-b border-gray-400 pb-1">PROJECTS</h2>
           <div className="space-y-4">
             {projects.map((project, index) => (
               <div key={index} className="flex justify-between">
@@ -95,9 +96,14 @@ export default function ResumeTemplate1({ data }: ResumeTemplateProps) {
                       ))}
                     </div>
                   )}
+                  {project.link && (
+                    <p className="text-xs text-blue-600 mt-1">
+                      <a href={project.link} target="_blank" rel="noopener noreferrer">{project.link.replace(/^https?:\/\//, '')}</a>
+                    </p>
+                  )}
                 </div>
                 <div className="text-right text-sm">
-                  {project.startDate} - {project.endDate || '—'}
+                  {project.startDate} {project.endDate ? `- ${project.endDate}` : ''}
                 </div>
               </div>
             ))}
@@ -109,12 +115,12 @@ export default function ResumeTemplate1({ data }: ResumeTemplateProps) {
       {skills && skills.length > 0 && (
         <section className="mb-6">
           <h2 className="text-lg font-bold text-gray-900 mb-3 border-b border-gray-400 pb-1">SKILLS</h2>
-          
+
           {/* Programming Languages */}
           <div className="mb-4">
             <h3 className="font-bold text-base">Programming languages:</h3>
             <p className="text-sm">
-              {skills.filter(skill => 
+              {skills.filter(skill =>
                 ['JavaScript', 'Python', 'Java', 'C++', 'Ruby', 'Go', 'Rust', 'TypeScript', 'PHP', 'SQL'].some(lang => skill.includes(lang))
               ).join(', ') || 'List programming languages or skills'}
             </p>
@@ -124,7 +130,7 @@ export default function ResumeTemplate1({ data }: ResumeTemplateProps) {
           <div>
             <h3 className="font-bold text-base">Computer software/frameworks:</h3>
             <p className="text-sm">
-              {skills.filter(skill => 
+              {skills.filter(skill =>
                 !['JavaScript', 'Python', 'Java', 'C++', 'Ruby', 'Go', 'Rust', 'TypeScript', 'PHP', 'SQL'].some(lang => skill.includes(lang))
               ).join(', ') || 'Microsoft Office, Adobe Photoshop, Maple, Git, React, jQuery'}
             </p>

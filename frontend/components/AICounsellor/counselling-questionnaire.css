@@ -101,8 +101,8 @@
 }
 
 .skill-card {
-    background: linear-gradient(135deg, #f6f8fb 0%, #ffffff 100%);
-    border: 2px solid #e2e8f0;
+    background: #f0f7ff !important;
+    border: 2px solid #667eea;
     border-radius: 16px;
     padding: 1.5rem;
     transition: all 0.3s ease;
@@ -339,9 +339,9 @@
 }
 
 .back-btn {
-    background: #f7fafc;
-    color: #4a5568;
-    border: 2px solid #e2e8f0;
+    background: #f0f7ff;
+    color: #4f46e5;
+    border: 2px solid #cbd5e0;
 }
 
 .back-btn:hover {

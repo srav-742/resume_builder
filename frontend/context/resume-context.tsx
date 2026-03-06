@@ -21,6 +21,8 @@ export type ResumeData = {
     address?: string;
     profilePicture?: string;
     summary: string;
+    jobTitle?: string;
+    website?: string;
   };
   education?: Array<{
     institution: string;
@@ -30,6 +32,7 @@ export type ResumeData = {
     startDate: string;
     endDate?: string;
     description?: string;
+    gpa?: string;
   }>;
   workExperience?: Array<{
     jobTitle: string;

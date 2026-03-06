@@ -57,12 +57,12 @@
 .toggle-btn {
     flex: 1;
     padding: 0.875rem 2rem;
-    border: 2px solid #e2e8f0;
+    border: 2px solid #6366f1;
     border-radius: 12px;
-    background: white;
+    background: #f0f7ff;
     font-size: 1rem;
     font-weight: 600;
-    color: #4a5568;
+    color: #4f46e5;
     cursor: pointer;
     transition: all 0.3s ease;
 }
@@ -359,13 +359,14 @@
 }
 
 .cta-card {
-    background: linear-gradient(135deg, #f6f8fb 0%, #ffffff 100%);
-    border: 2px solid #e2e8f0;
+    background: #f0f7ff !important;
+    border: 2px solid #6366f1 !important;
     border-radius: 16px;
     padding: 2rem;
     text-align: center;
     cursor: pointer;
     transition: all 0.3s ease;
+    color: #4f46e5 !important;
 }
 
 .cta-card:hover {

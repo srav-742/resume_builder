@@ -27,19 +27,19 @@ export default function TemplatesPage() {
     {
       id: "template1",
       name: "Professional",
-      image: "images/templates/Professional.png",
+      image: "/images/templates/Professional.png",
       description: "Clean and professional design suitable for most industries",
     },
     {
       id: "template2",
       name: "Modern",
-      image: "images/templates/Modern.png",
+      image: "/images/templates/Modern.png",
       description: "Contemporary layout with a creative touch",
     },
     {
       id: "template3",
       name: "Minimal",
-      image: "images/templates/Minimal.png",
+      image: "/images/templates/Minimal.png",
       description: "Simple and elegant design focusing on content",
     },
     {
@@ -51,13 +51,13 @@ export default function TemplatesPage() {
     {
       id: "template5",
       name: "Professional Profile",
-      image: "images/templates/SoftwareDeveloper.png",
+      image: "/images/templates/SoftwareDeveloper.png",
       description: "Clean design with profile photo and two-column skills",
     },
     {
       id: "template6",
       name: "Data Analyst",
-      image: "images/templates/DataAnalyst.png",
+      image: "/images/templates/DataAnalyst.png",
       description: "Minimalist single-column layout with pink headings — perfect for data analysts and professionals.",
     },
   ];

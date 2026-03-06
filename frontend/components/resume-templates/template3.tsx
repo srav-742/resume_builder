@@ -99,6 +99,48 @@ export default function ResumeTemplate3({ data }: ResumeTemplateProps) {
         </section>
       )}
 
+      {/* Projects Section - Vertical Timeline */}
+      {projects && projects.length > 0 && (
+        <section className="mb-8">
+          <h2 className="text-xl font-bold text-green-900 mb-4">PROJECTS</h2>
+          <div className="space-y-6">
+            {projects.map((project, index) => (
+              <div key={index} className="flex gap-4">
+                {/* Date Column */}
+                <div className="w-32 flex-shrink-0 text-sm text-gray-600">
+                  <div className="font-semibold">{project.startDate} {project.endDate ? `- ${project.endDate}` : ''}</div>
+                </div>
+
+                {/* Divider */}
+                <div className="w-px bg-gray-300"></div>
+
+                {/* Project Details */}
+                <div className="flex-1">
+                  <div className="flex justify-between items-start">
+                    <h3 className="font-bold text-lg text-green-800">{project.title}</h3>
+                    {project.link && (
+                      <a href={project.link} target="_blank" rel="noopener noreferrer" className="text-sm text-green-600 hover:underline">
+                        {project.link.replace(/^https?:\/\//, '')}
+                      </a>
+                    )}
+                  </div>
+                  <p className="mt-2 text-gray-700">{project.description}</p>
+                  {project.technologies && project.technologies.length > 0 && (
+                    <div className="flex flex-wrap gap-2 mt-2">
+                      {project.technologies.map((tech, i) => (
+                        <span key={i} className="bg-green-50 text-green-700 px-2 py-0.5 rounded text-xs font-medium border border-green-100">
+                          {tech}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
       {/* Education Section - Vertical Timeline */}
       {education && education.length > 0 && (
         <section className="mb-8">
@@ -155,11 +197,10 @@ export default function ResumeTemplate3({ data }: ResumeTemplateProps) {
                 const dots = Array(5).fill(0).map((_, idx) => (
                   <span
                     key={idx}
-                    className={`w-3 h-3 rounded-full mx-0.5 ${
-                      idx < (level.includes('native') ? 5 : level.includes('fluent') ? 4 : level.includes('proficient') ? 3 : level.includes('intermediate') ? 2 : 1)
+                    className={`w-3 h-3 rounded-full mx-0.5 ${idx < (level.includes('native') ? 5 : level.includes('fluent') ? 4 : level.includes('proficient') ? 3 : level.includes('intermediate') ? 2 : 1)
                         ? 'bg-green-500'
                         : 'bg-gray-300'
-                    }`}
+                      }`}
                   ></span>
                 ));
 

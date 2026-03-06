@@ -35,6 +35,7 @@ const personalInfoSchema = z.object({
     .string()
     .min(10, { message: "Summary should be at least 10 characters" })
     .max(500, { message: "Summary should not exceed 500 characters" }),
+  jobTitle: z.string().min(2, { message: "Role must be at least 2 characters" }).optional().or(z.literal("")),
 })
 
 type PersonalInfoValues = z.infer<typeof personalInfoSchema>
@@ -56,6 +57,7 @@ export default function PersonalInfoPage() {
       location: "",
       profilePicture: "",
       summary: "",
+      jobTitle: "",
     },
   })
 
@@ -69,6 +71,7 @@ export default function PersonalInfoPage() {
         location: resumeData.personalInfo.location || "",
         profilePicture: resumeData.personalInfo.profilePicture || "",
         summary: resumeData.personalInfo.summary || "",
+        jobTitle: resumeData.personalInfo.jobTitle || "",
       })
     }
   }, [resumeData, form])
@@ -146,6 +149,20 @@ export default function PersonalInfoPage() {
                   <FormLabel>Full Name</FormLabel>
                   <FormControl>
                     <Input placeholder="John Doe" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="jobTitle"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Professional Role (e.g. Software Developer)</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Software Developer or AIML Engineer" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

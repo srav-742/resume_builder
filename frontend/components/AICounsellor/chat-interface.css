@@ -217,16 +217,17 @@
 
 /* 10. OPTION BUTTONS (Starting Phase) */
 .option-btn {
-    background: white !important;
+    background: #f0f7ff !important;
     padding: 1.25rem !important;
     border-radius: 20px !important;
-    border: 2px solid #f1f5f9 !important;
+    border: 2px solid #6366f1 !important;
     display: flex !important;
     align-items: center !important;
     gap: 1rem !important;
     cursor: pointer !important;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.02) !important;
+    box-shadow: 0 4px 6px rgba(99, 102, 241, 0.1) !important;
+    color: #4f46e5 !important;
 }
 
 .option-btn:hover {

@@ -95,6 +95,45 @@ export default function ResumeTemplate2({ data }: ResumeTemplateProps) {
               </div>
             </section>
           )}
+          {/* Projects */}
+          {projects && projects.length > 0 && (
+            <section>
+              <h2 className="text-xl font-bold text-blue-800 mb-4 border-b-2 border-blue-800 pb-1">PROJECTS</h2>
+              <div className="space-y-6">
+                {projects.map((project, index) => (
+                  <div key={index} className="border-b border-gray-200 pb-4 last:border-0 last:pb-0">
+                    <h3 className="font-bold text-lg text-blue-800">{project.title}</h3>
+                    <div className="flex items-center gap-4 text-sm text-gray-500 mt-1">
+                      {project.startDate && (
+                        <div className="flex items-center">
+                          <Calendar className="h-3 w-3 mr-1" />
+                          <span>{project.startDate} - {project.endDate || 'Present'}</span>
+                        </div>
+                      )}
+                      {project.link && (
+                        <div className="flex items-center">
+                          <Link2 className="h-3 w-3 mr-1" />
+                          <a href={project.link} target="_blank" rel="noopener noreferrer" className="hover:underline">
+                            {project.link.replace(/^https?:\/\//, '')}
+                          </a>
+                        </div>
+                      )}
+                    </div>
+                    <p className="mt-2 text-gray-700">{project.description}</p>
+                    {project.technologies && project.technologies.length > 0 && (
+                      <div className="flex flex-wrap gap-2 mt-2">
+                        {project.technologies.map((tech, i) => (
+                          <span key={i} className="bg-blue-50 text-blue-700 px-2 py-0.5 rounded text-xs font-medium">
+                            {tech}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </section>
+          )}
         </div>
 
         {/* Right Column */}
@@ -173,11 +212,10 @@ export default function ResumeTemplate2({ data }: ResumeTemplateProps) {
                     const dots = Array(5).fill(0).map((_, idx) => (
                       <span
                         key={idx}
-                        className={`w-3 h-3 rounded-full mx-0.5 ${
-                          idx < (level.includes('native') ? 5 : level.includes('fluent') ? 4 : level.includes('proficient') ? 3 : level.includes('intermediate') ? 2 : 1)
+                        className={`w-3 h-3 rounded-full mx-0.5 ${idx < (level.includes('native') ? 5 : level.includes('fluent') ? 4 : level.includes('proficient') ? 3 : level.includes('intermediate') ? 2 : 1)
                             ? 'bg-blue-500'
                             : 'bg-gray-300'
-                        }`}
+                          }`}
                       ></span>
                     ));
 
