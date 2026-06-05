@@ -50,18 +50,34 @@ export function PreviewClient({ from }: { from: string }) {
     try {
       await saveResume(resumeData);
 
-      const hire1percentBackendUrl = process.env.NEXT_PUBLIC_HIRE1PERCENT_BACKEND_URL || "https://updatedtalent-backend.onrender.com";
+      const storedBackendUrl = localStorage.getItem('hire1percent_backendUrl');
+      let rawBackendUrl = storedBackendUrl || process.env.NEXT_PUBLIC_HIRE1PERCENT_BACKEND_URL || "https://updatedtalent-backend.onrender.com";
+      
+      // Clean up the URL (strip trailing slash)
+      rawBackendUrl = rawBackendUrl.replace(/\/$/, "");
+      
+      // If it ends with /api, remove it as we append /api/resume/sync-from-builder
+      if (rawBackendUrl.endsWith("/api")) {
+        rawBackendUrl = rawBackendUrl.substring(0, rawBackendUrl.length - 4);
+      }
+      const hire1percentBackendUrl = rawBackendUrl;
 
       const user = auth.currentUser;
       if (!user) throw new Error("No authenticated user found");
       const token = await getIdToken(user, true);
 
+      const hire1percentUserId = localStorage.getItem('hire1percent_userId');
+      const syncHeaders: Record<string, string> = {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`
+      };
+      if (hire1percentUserId) {
+        syncHeaders["x-user-id"] = hire1percentUserId;
+      }
+
       const syncResponse = await fetch(`${hire1percentBackendUrl}/api/resume/sync-from-builder`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`
-        },
+        headers: syncHeaders,
         body: JSON.stringify(resumeData)
       });
 
@@ -75,6 +91,7 @@ export function PreviewClient({ from }: { from: string }) {
       localStorage.removeItem('hire1percent_redirectUrl');
       localStorage.removeItem('hire1percent_userId');
       localStorage.removeItem('hire1percent_jobId');
+      localStorage.removeItem('hire1percent_backendUrl');
 
       if (returnUrl) {
         const urlSeparator = returnUrl.includes('?') ? '&' : '?';

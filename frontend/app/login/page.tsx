@@ -23,7 +23,7 @@ export default function LoginPage() {
       const user = userCredential.user;
       const idToken = await user.getIdToken();
 
-      const profileResponse = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/user/profile`, {
+      const profileResponse = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/users/profile`, {
         method: 'GET',
         headers: { Authorization: `Bearer ${idToken}` },
       });
@@ -37,7 +37,11 @@ export default function LoginPage() {
       }
     } catch (error: any) {
       console.error('Firebase login error:', error)
-      alert('Login failed. Please check your credentials.')
+      if (error.code === 'auth/invalid-credential' || error.code === 'auth/user-not-found') {
+        alert('Login failed. If you haven\'t created an account on this Resume Builder yet, please click "Create one" below to sign up first. Your Hire1Percent email/password will work here once you register them!')
+      } else {
+        alert('Login failed. Please check your credentials.')
+      }
     } finally {
       setLoading(false)
     }
@@ -50,7 +54,7 @@ export default function LoginPage() {
       const result = await signInWithPopup(auth, provider)
       const idToken = await result.user.getIdToken()
 
-      const profileResponse = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/user/profile`, {
+      const profileResponse = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/users/profile`, {
         method: 'GET',
         headers: { Authorization: `Bearer ${idToken}` },
       });

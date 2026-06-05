@@ -100,12 +100,14 @@ export function ResumeProvider({ children }: { children: ReactNode }) {
       const redirectUrl = params.get('redirectUrl') || '';
       const userId = params.get('userId') || '';
       const jobId = params.get('jobId') || '';
+      const backendUrl = params.get('backendUrl') || '';
 
       localStorage.setItem('hire1percent_from', 'true');
       localStorage.setItem('hire1percent_redirectUrl', redirectUrl);
       if (userId) localStorage.setItem('hire1percent_userId', userId);
       if (jobId) localStorage.setItem('hire1percent_jobId', jobId);
-      console.log("[HIRE1PERCENT-LINK] Intercepted context:", { redirectUrl, userId, jobId });
+      if (backendUrl) localStorage.setItem('hire1percent_backendUrl', backendUrl);
+      console.log("[HIRE1PERCENT-LINK] Intercepted context:", { redirectUrl, userId, jobId, backendUrl });
     }
 
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {

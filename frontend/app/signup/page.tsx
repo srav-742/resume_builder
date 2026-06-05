@@ -18,7 +18,7 @@ export default function SignupPage() {
   const syncProfile = async (idToken: string) => {
     try {
       // Default to 'seeker' role as we are simplifying the interface
-      await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/user/profile?role=seeker`, {
+      await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/users/profile?role=seeker`, {
         method: 'GET',
         headers: { Authorization: `Bearer ${idToken}` },
       })
