@@ -75,28 +75,41 @@ export default function TemplatesPage() {
       updateResumeData(updatedData);
 
       // ✅ Save to resume system (your existing logic)
-      await saveResume(updatedData);
+      try {
+        await saveResume(updatedData);
+      } catch (saveError) {
+        console.error("Failed to save template selection to backend:", saveError);
+        toast({
+          variant: "destructive",
+          title: "Save Warning",
+          description: "Could not save template selection to the server, but you can continue editing locally.",
+        });
+      }
 
       // ✅ ALSO save to USER PROFILE (so /profile page can read it)
       const auth = getAuth();
       const user = auth.currentUser;
       if (user) {
-        const idToken = await user.getIdToken();
-        const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'https://resume-builder-2gji.onrender.com';
+        try {
+          const idToken = await user.getIdToken();
+          const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'https://resume-builder-2gji.onrender.com';
 
-        const profileResponse = await fetch(`${BACKEND_URL}/api/profile`, {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${idToken}`,
-          },
-          body: JSON.stringify({
-            selectedTemplate: templateId, // 👈 Only send template ID
-          }),
-        });
+          const profileResponse = await fetch(`${BACKEND_URL}/api/profile`, {
+            method: 'PUT',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${idToken}`,
+            },
+            body: JSON.stringify({
+              selectedTemplate: templateId, // 👈 Only send template ID
+            }),
+          });
 
-        if (!profileResponse.ok) {
-          console.warn("Failed to save template to user profile (non-critical)");
+          if (!profileResponse.ok) {
+            console.warn("Failed to save template to user profile (non-critical)");
+          }
+        } catch (profileError) {
+          console.warn("Failed to save template to user profile:", profileError);
         }
       }
 
@@ -111,7 +124,7 @@ export default function TemplatesPage() {
       toast({
         variant: "destructive",
         title: "Error",
-        description: "Failed to save template selection. Please try again.",
+        description: "Failed to select template. Please try again.",
       });
     } finally {
       setIsLoading(false);

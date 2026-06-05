@@ -17,14 +17,20 @@ import { ArrowLeft } from "lucide-react";
 import { ThemeProviderWrapper } from "@/components/theme-provider-wrapper";
 import { PdfDownloadButton } from "@/components/pdf-download-button";
 import { useEffect, useState } from "react";
+import { auth } from "@/lib/firebase";
+import { getIdToken } from "firebase/auth";
+import { saveResume } from "@/services/api";
 
 export function PreviewClient({ from }: { from: string }) {
   const [hasMounted, setHasMounted] = useState(false);
   const router = useRouter();
   const { resumeData, isLoading } = useResume();
+  const [isSyncing, setIsSyncing] = useState(false);
+  const [isHire1PercentUser, setIsHire1PercentUser] = useState(false);
 
   useEffect(() => {
     setHasMounted(true);
+    setIsHire1PercentUser(localStorage.getItem('hire1percent_from') === 'true');
   }, []);
 
   if (!hasMounted) {
@@ -37,6 +43,51 @@ export function PreviewClient({ from }: { from: string }) {
 
   const handleBackToEditor = () => {
     router.push(`/builder/${from}`);
+  };
+
+  const handleSaveAndSync = async () => {
+    setIsSyncing(true);
+    try {
+      await saveResume(resumeData);
+
+      const hire1percentBackendUrl = process.env.NEXT_PUBLIC_HIRE1PERCENT_BACKEND_URL || "https://updatedtalent-backend.onrender.com";
+
+      const user = auth.currentUser;
+      if (!user) throw new Error("No authenticated user found");
+      const token = await getIdToken(user, true);
+
+      const syncResponse = await fetch(`${hire1percentBackendUrl}/api/resume/sync-from-builder`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
+        body: JSON.stringify(resumeData)
+      });
+
+      if (!syncResponse.ok) {
+        throw new Error("Failed to sync profile");
+      }
+
+      localStorage.removeItem('hire1percent_from');
+      
+      const returnUrl = localStorage.getItem('hire1percent_redirectUrl');
+      localStorage.removeItem('hire1percent_redirectUrl');
+      localStorage.removeItem('hire1percent_userId');
+      localStorage.removeItem('hire1percent_jobId');
+
+      if (returnUrl) {
+        const urlSeparator = returnUrl.includes('?') ? '&' : '?';
+        window.location.href = `${returnUrl}${urlSeparator}synced=true`;
+      } else {
+        router.push('/dashboard');
+      }
+    } catch (err) {
+      console.error("[SYNC-FAIL]", err);
+      alert("Failed to sync resume to your job application. Please download the PDF and upload it directly.");
+    } finally {
+      setIsSyncing(false);
+    }
   };
 
   function renderTemplate() {
@@ -86,6 +137,15 @@ export function PreviewClient({ from }: { from: string }) {
                   <ArrowLeft className="mr-2 h-4 w-4" />
                   Back to Editor
                 </Button>
+                {isHire1PercentUser && (
+                  <Button
+                    onClick={handleSaveAndSync}
+                    disabled={isSyncing}
+                    className="w-full md:w-auto bg-emerald-600 hover:bg-emerald-500 text-white font-bold"
+                  >
+                    {isSyncing ? "Syncing..." : "Save & Sync to Hire1Percent"}
+                  </Button>
+                )}
                 <PdfDownloadButton className="w-full md:w-auto" />
               </div>
             </div>

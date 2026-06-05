@@ -95,6 +95,19 @@ export function ResumeProvider({ children }: { children: ReactNode }) {
       }
     }
 
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('from') === 'hire1percent') {
+      const redirectUrl = params.get('redirectUrl') || '';
+      const userId = params.get('userId') || '';
+      const jobId = params.get('jobId') || '';
+
+      localStorage.setItem('hire1percent_from', 'true');
+      localStorage.setItem('hire1percent_redirectUrl', redirectUrl);
+      if (userId) localStorage.setItem('hire1percent_userId', userId);
+      if (jobId) localStorage.setItem('hire1percent_jobId', jobId);
+      console.log("[HIRE1PERCENT-LINK] Intercepted context:", { redirectUrl, userId, jobId });
+    }
+
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       setUser(firebaseUser);
 
