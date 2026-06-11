@@ -124,7 +124,9 @@ export function ResumeProvider({ children }: { children: ReactNode }) {
           console.error('Failed to load user resume:', error);
         }
       } else {
-        if (window.location.pathname.startsWith('/builder')) {
+        const currentPath = window.location.pathname;
+        if (currentPath.startsWith('/builder') || currentPath === '/preview') {
+          localStorage.setItem('login_redirect_target', currentPath + window.location.search);
           window.location.href = '/login';
         }
       }
@@ -148,7 +150,8 @@ export function ResumeProvider({ children }: { children: ReactNode }) {
         currentPath.startsWith('/profile/') ||
         currentPath === '/dashboard' ||
         currentPath === '/templates' ||
-        currentPath === '/settings';
+        currentPath === '/settings' ||
+        currentPath === '/preview';
 
       if (!isProfileOrFixedRoute) {
         const nextStep = getFurthestStep(resumeData);

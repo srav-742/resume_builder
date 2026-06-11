@@ -13,6 +13,17 @@ router.get('/profile', authenticate, async (req, res) => {
     // Find or create user
     let user = await User.findOne({ firebaseUid: uid });
 
+    if (!user && email) {
+      // Check if a user with the same email already exists
+      user = await User.findOne({ email: email.toLowerCase() });
+      if (user) {
+        console.log(`Updating firebaseUid for existing email: ${email} from ${user.firebaseUid} to ${uid}`);
+        user.firebaseUid = uid;
+        if (name && !user.name) user.name = name;
+        await user.save();
+      }
+    }
+
     if (!user) {
       console.log(`Creating new user for UID: ${uid} with role: ${role}`);
       user = new User({

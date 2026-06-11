@@ -27,6 +27,17 @@ router.post('/', authenticate, async (req, res) => {
 
     // 1. Ensure User Profile exists
     let userProfile = await User.findOne({ firebaseUid });
+    if (!userProfile && req.user.email) {
+      userProfile = await User.findOne({ email: req.user.email.toLowerCase() });
+      if (userProfile) {
+        console.log(`Updating firebaseUid for existing email profile: ${req.user.email} from ${userProfile.firebaseUid} to ${firebaseUid}`);
+        userProfile.firebaseUid = firebaseUid;
+        if (req.user.name && !userProfile.name) {
+          userProfile.name = req.user.name;
+        }
+        await userProfile.save();
+      }
+    }
     if (!userProfile) {
       userProfile = new User({
         firebaseUid,
@@ -45,13 +56,18 @@ router.post('/', authenticate, async (req, res) => {
         : userProfile.dateOfBirth || '';
     }
 
+    let genderVal = (incoming.gender || userProfile.gender || "").toLowerCase().trim();
+    if (!['male', 'female', 'other'].includes(genderVal)) {
+      genderVal = '';
+    }
+
     const enrichedPersonalInfo = {
       fullName: (incoming.fullName || userProfile.fullName || "").trim(),
       email: req.user.email,
       phone: (incoming.phone || userProfile.phone || "").trim(),
       location: (incoming.location || (userProfile.address || "").split('\n')[0] || "").trim(),
       summary: (incoming.summary || userProfile.summary || "").trim(),
-      gender: incoming.gender || userProfile.gender || "",
+      gender: genderVal,
       dateOfBirth: dobStr || "",
       address: (incoming.address || userProfile.address || "").trim(),
       profilePicture: incoming.profilePicture || userProfile.profilePicture || "",
@@ -107,7 +123,17 @@ router.put('/:id', authenticate, async (req, res) => {
       });
     }
 
-    if (updateData.personalInfo) resume.personalInfo = { ...resume.personalInfo, ...updateData.personalInfo };
+    if (updateData.personalInfo) {
+      const cleanedPersonalInfo = { ...updateData.personalInfo };
+      if (cleanedPersonalInfo.gender) {
+        let genderVal = cleanedPersonalInfo.gender.toLowerCase().trim();
+        if (!['male', 'female', 'other'].includes(genderVal)) {
+          genderVal = '';
+        }
+        cleanedPersonalInfo.gender = genderVal;
+      }
+      resume.personalInfo = { ...resume.personalInfo, ...cleanedPersonalInfo };
+    }
     if (updateData.education) resume.education = updateData.education;
     if (updateData.experience) resume.workExperience = updateData.experience;
     if (updateData.workExperience) resume.workExperience = updateData.workExperience;

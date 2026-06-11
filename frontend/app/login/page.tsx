@@ -28,12 +28,14 @@ export default function LoginPage() {
         headers: { Authorization: `Bearer ${idToken}` },
       });
 
+      const target = localStorage.getItem('login_redirect_target') || '/templates';
+      localStorage.removeItem('login_redirect_target');
       if (profileResponse.ok) {
         // const profile = await profileResponse.json();
         // const role = profile.role || 'seeker';
-        router.push('/templates');
+        router.push(target);
       } else {
-        router.push('/templates');
+        router.push(target);
       }
     } catch (error: any) {
       console.error('Firebase login error:', error)
@@ -59,12 +61,14 @@ export default function LoginPage() {
         headers: { Authorization: `Bearer ${idToken}` },
       });
 
+      const target = localStorage.getItem('login_redirect_target') || '/templates';
+      localStorage.removeItem('login_redirect_target');
       if (profileResponse.ok) {
         // const profile = await profileResponse.json();
         // const role = profile.role || 'seeker';
-        router.push('/templates');
+        router.push(target);
       } else {
-        router.push('/templates');
+        router.push(target);
       }
     } catch (error: any) {
       console.error('Google Sign-In Error:', error)
